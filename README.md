@@ -49,33 +49,46 @@ See `docs/PRODUCT.md` for detailed product requirements.
 
 ## Getting Started
 
-Create and activate the project-local Python virtual environment:
+### Prerequisites
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python --version
-```
+- Node.js 22.13 or newer
+- npm
+- Full Xcode 26.4 or newer for the iOS Simulator
 
-Use `deactivate` when you are finished. The virtual environment is reserved for
-Python-based project tooling and is not committed to Git.
+The existing `.venv/` is ignored and is not required to run the Expo app.
 
-The Expo application uses Node.js and npm separately. Detailed application
-commands will be finalized during Milestone 01. The expected workflow is:
+### Install
 
 ```bash
 npm install
-npx expo start
 ```
 
-Then choose:
+Milestone 01 uses local sample data and does not require environment variables.
 
-- `i` for iOS Simulator
-- `w` for web
+### Run on web
+
+```bash
+npm run web
+```
+
+The web build is configured as a single-page application.
+
+### Run on iOS Simulator
+
+```bash
+npm run ios
+```
+
+If Expo reports that Xcode is not fully installed, install and open Xcode, then
+run this command yourself before retrying:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
 
 ## Environment Variables
 
-Do not commit real secrets.
+Do not commit real secrets. Milestone 01 does not read any of these variables.
 
 The planned client variables are:
 
@@ -92,15 +105,24 @@ OPENAI_API_KEY=
 
 ## Verification
 
-The project should maintain scripts for:
+Run the terminating automated checks with:
 
 ```bash
 npm run typecheck
 npm run lint
+npm run format:check
 npm test
+npx expo export --platform web
 ```
 
-The exact setup will be completed during Milestone 01.
+## Milestone 01 limitations
+
+- Data is local sample data and resets when the app reloads.
+- Demo dates are generated and displayed as UTC calendar dates for deterministic
+  testing. User-local timezone handling is deferred.
+- Add flows, Activity, task details, completion, swipe-to-strike, haptics, Undo,
+  Supabase, and GPT-5.6 parsing belong to later milestones.
+- Android-specific implementation and verification have not begun.
 
 ## Build Week Evidence
 

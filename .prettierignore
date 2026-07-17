@@ -1,0 +1,8 @@
+.venv/
+.expo/
+dist/
+node_modules/
+assets/expo.icon/
+AGENTS.md
+README.md
+docs/

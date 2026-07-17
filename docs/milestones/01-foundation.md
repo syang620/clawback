@@ -126,28 +126,87 @@ To be filled in after implementation.
 
 ### Status
 
-Not started
+Implemented; automated checks and both web smoke checks pass. Desktop manual
+review passed, with the remaining viewport, accessibility, state, console, and
+iOS checks documented below as pending.
 
 ### Files Changed
 
-- Pending
+- Expo, Router, NativeWind, TypeScript, lint, formatting, and test configuration
+- `app/`, `components/`, `features/financial-items/`, `constants/`, `lib/`, and `types/`
+- `tests/` with focused Milestone 01 business-logic and component coverage
+- `README.md`, `.gitignore`, `.env.example`, and `docs/BUILD_LOG.md`
 
 ### Verification Results
 
-- Pending
+- Foundation checkpoint: `npm run typecheck` passed.
+- Foundation checkpoint: `npx expo export --platform web` passed.
+- `npx expo install --check` passed using Expo's local dependency map; Expo warned
+  that offline dependency validation is less reliable.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run format:check` passed.
+- `npm test` passed: 4 suites and 14 tests.
+- `npx expo export --platform web` passed and produced the SPA in `dist/`.
+- The exported `index.html`, CSS, and JavaScript returned HTTP 200 from a temporary
+  local server and contained the expected dashboard assets/content.
+- `npm run web` bundled and ran after resolving a NativeWind dark-mode setting.
+- `npm run ios` failed because full Xcode is not installed or selected. Expo's
+  remediation is `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`.
 
 ### Manual Review
 
-- Pending
+Verified:
+
+- Desktop layout passed.
+- Dashboard totals passed: Available $57, At Risk $595, and Clawed Back $0.
+- Exactly three demo tasks passed.
+- FoundersCard “Next deadline” treatment passed.
+- Absolute calendar dates without time components passed.
+- Urgency is not communicated through color alone.
+- The sample-data indicator is visible.
+- No visible horizontal overflow was observed at the reviewed desktop width.
+- No credential prompt appeared.
+- Reloading continued to show sample data.
+- The design was judged coherent and financially trustworthy.
+
+Observation:
+
+- Task cards are relatively tall on desktop. This is not a Milestone 01 blocker
+  and may be reconsidered during demo polish.
+- The “Sample data” pill visually resembles a button. Implementation inspection
+  confirms it is noninteractive `View`/`Text` content with no press handler,
+  button role, or keyboard-focusable behavior.
+
+Pending manual verification:
+
+- Mobile layout at 390×844
+- Narrow layout at 320×700
+- Browser console errors or warnings
+- Keyboard focus behavior
+- Screen-reader labels and reading order
+- Behavior at 200% browser zoom
+- Dashboard empty-state rendering
+- Loading-state rendering
+- Error-state rendering
+- iOS Simulator, pending full Xcode setup
 
 ### Known Limitations
 
-- Pending
+- Automated browser screenshot/viewport inspection was unavailable in this environment.
+- iOS Simulator launch awaits full Xcode installation and selection.
+- Demo dates intentionally use UTC calendar values; user-local timezone handling is deferred.
+- Data is local and static. All Milestone 02 interactions remain unimplemented.
+- npm audit reports 11 moderate findings caused by a transitive `uuid`
+  dependency in the Expo configuration/Xcode toolchain. The available forced
+  remediation proposes an incompatible dependency change, so neither
+  `npm audit fix` nor `npm audit fix --force` was applied. This is tracked as a
+  known transitive dependency issue rather than a failed Milestone 01 check.
 
 ### Commit
 
-- Pending
+Pending manual review; no commit or push was created.
 
 ### Build Log Updated
 
-- [ ] `docs/BUILD_LOG.md`
+- [x] `docs/BUILD_LOG.md`

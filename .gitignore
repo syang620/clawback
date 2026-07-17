@@ -13,3 +13,21 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Node
+node_modules/
+npm-debug.*
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# TypeScript
+*.tsbuildinfo
+
+# Generated native projects
+/ios/
+/android/
