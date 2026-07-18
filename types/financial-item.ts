@@ -24,3 +24,14 @@ export interface FinancialItem {
   updatedAt: string;
   completedAt: string | null;
 }
+
+export interface CreateFinancialItemInput {
+  kind: FinancialItemKind;
+  title: string;
+  provider: string | null;
+  valueCents: number | null;
+  chargeAmountCents: number | null;
+  dueAt: string;
+  recurrence: Recurrence;
+  actionUrl: string | null;
+}

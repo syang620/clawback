@@ -115,28 +115,85 @@ To be filled in after implementation.
 
 ### Status
 
-Not started
+Accepted after automated verification plus manual web and iOS Simulator review.
 
 ### Files Changed
 
-- Pending
+- Home Add navigation plus `/add` and `/add/manual` routes
+- Trial, perk, and subscription choice menu
+- Controlled, accessible manual-entry form with type-specific money guidance
+- Pure calendar-date, dollar-input, URL, and form validation
+- Typed manual-item creation contract and atomic in-memory provider insertion
+- Focused logic, component, provider, metrics, and ranking tests
+- README capability, SPA fallback, and current-limitation updates
 
 ### Verification Results
 
-- Pending
+- `npx expo install --check` passed using Expo's offline dependency map; Expo
+  warned that offline dependency validation is less reliable.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run format:check` passed.
+- `npm test` passed: 14 suites and 79 tests.
+- `npx expo export --platform web` passed and produced the SPA in `dist/`.
+- Development-server checks returned HTTP 200 for `/`, `/add`, a valid
+  `/add/manual?kind=perk` route, and an invalid-kind manual route.
+- A temporary standard-library SPA fallback server returned the same exported
+  `index.html` document with HTTP 200 for all four routes. No permanent server
+  or dependency was added.
+- The iOS app bundled 1,784 modules and rendered the perk-entry form in Expo Go
+  on an iPhone 17 Pro Simulator without Metro or navigation errors.
+- The form screenshot confirmed visible Home, Activity, and Add navigation;
+  selected task type; required/optional labels; disclaimer; deadline guidance;
+  and mobile-width form fields.
+- Expo and web export repeated the existing `NO_COLOR`/`FORCE_COLOR` warning.
 
 ### Manual Review
 
-- Pending
+Task-type switching behavior:
+
+- Trial and Subscription prioritize Charge at Risk, while Perk prioritizes Value
+  Available: passed
+
+Web:
+
+- Created trial, perk, and subscription: passed
+- Dashboard metrics update: passed
+- Existing ranking applies to new items: passed
+- New-item completion and Undo: passed
+- Blank versus explicit zero: passed
+- Currency validation: passed
+- Calendar validation and date stability: passed
+- Required-field validation preserves values: passed
+- HTTPS URL validation: passed
+- Cancel creates nothing: passed
+- Keyboard navigation and focus: passed
+- Error announcements: passed
+- 200% zoom and responsive layout: passed
+- Browser console: passed
+- Refresh resets manually created data as documented: passed
+
+iOS Simulator:
+
+- Created all three task types: passed
+- Keyboard avoidance and scrolling: passed
+- Date input behavior: passed
+- Validation preserves input: passed
+- Cancel and Save navigation: passed
+- VoiceOver labels and reading order: passed
+- Metro and navigation errors: none observed
 
 ### Known Limitations
 
-- Pending
+- Manual items are in-memory only and reset on reload.
+- Dollar parsing is USD-oriented and uses a period decimal separator.
+- Deadline entry uses `YYYY-MM-DD` and stores noon UTC for deterministic
+  date-only behavior; user-local timezone handling and a native picker are deferred.
 
 ### Commit
 
-- Pending
+Not created. Per milestone instructions, no commit, tag, or push was performed.
 
 ### Build Log Updated
 
-- [ ] `docs/BUILD_LOG.md`
+- [x] `docs/BUILD_LOG.md`

@@ -186,6 +186,8 @@ local deterministic demo data, without beginning Milestone 02.
 
 Primary session identifier pending `/feedback` capture.
 
+---
+
 ## 2026-07-17 — Milestone 02 Checkpoint 2A Core Behavior
 
 ### Objective
@@ -374,6 +376,97 @@ Physical tactile feedback was not verified because testing used the Simulator.
 - Physical tactile feedback remains unverified until tested on a real iPhone.
 - State remains local and resets on refresh.
 - Backend, authentication, manual entry, email parsing, and notifications remain out of scope.
+
+### Commit
+
+Not created. No commit, tag, or push was performed.
+
+### Codex Session
+
+Primary session identifier pending `/feedback` capture.
+
+---
+
+## 2026-07-18 — Milestone 03 Manual Financial Item Creation
+
+### Objective
+
+Allow a user to create trial, perk, and subscription reminders manually, keep
+validation trustworthy, and update the existing local dashboard immediately.
+
+### Codex Contribution
+
+- Added Add navigation, a three-type choice screen, and a responsive manual form.
+- Added pure validation for required fields, UTC calendar dates, safe HTTPS URLs,
+  and USD input converted directly from digit strings into integer cents.
+- Preserved blank versus zero amounts and retained raw form values after errors.
+- Extended the existing provider with atomic in-memory creation and session-unique IDs.
+- Reused the accepted ranking, metrics, detail, completion, and Undo behavior.
+- Expanded coverage from 47 to 79 tests across 14 suites.
+
+### Team Decisions
+
+- Manual creation remains local and synchronous for Milestone 03.
+- Both money fields remain optional and visible; perks emphasize Value Available,
+  while trials and subscriptions emphasize Charge at Risk.
+- Calendar dates use a dependency-free `YYYY-MM-DD` input and noon UTC storage.
+- Saving creates an active manual reminder and never claims to perform a financial action.
+- Notes, email parsing, persistence, editing, notifications, and automatic
+  cancellation remain out of scope.
+
+### Files Changed
+
+- Add and manual-entry routes plus primary Add navigation
+- Manual-entry components and provider creation support
+- Financial-item creation types and pure date/money/form validation
+- Focused logic, component, and provider tests
+- `README.md`, the Milestone 03 completion record, and this build log
+
+### Verification
+
+- `npx expo install --check`: passed with Expo's offline-validation warning
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 14 suites and 79 tests
+- `npx expo export --platform web`: passed
+- `git diff --check`: passed
+- Development Home, Add, valid manual, and invalid-kind manual routes: HTTP 200
+- Exported SPA fallback: the same four routes returned identical `index.html`
+  documents with HTTP 200
+- iOS: bundled 1,784 modules and rendered the perk form in Expo Go on an iPhone
+  17 Pro Simulator without Metro or navigation errors
+
+### Manual Review
+
+- Task-type switching: passed; Trial and Subscription prioritize Charge at Risk,
+  while Perk prioritizes Value Available
+- Web creation for trial, perk, and subscription: passed
+- Web metrics, existing ranking, new-item completion, and Undo: passed
+- Web blank-versus-zero behavior, currency validation, calendar validation and
+  date stability, required-field value preservation, and HTTPS validation: passed
+- Web Cancel, keyboard navigation and focus, error announcements, 200% zoom,
+  responsive layout, browser console, and documented refresh reset: passed
+- iOS creation for all three types, keyboard avoidance and scrolling, date input,
+  validation value preservation, Cancel and Save navigation, and VoiceOver: passed
+- iOS Metro and navigation errors: none observed
+- Milestone 03: accepted after manual review
+
+### Problems and Resolutions
+
+- The browser-control environment exposed no browser session during implementation;
+  the subsequent user-run manual web review passed.
+- The first component assertion targeted text nested with its optional label. It
+  was corrected to query the field's accessibility label, and the full suite passed.
+- Expo repeated the existing offline dependency-validation and
+  `NO_COLOR`/`FORCE_COLOR` warnings; neither caused a build failure.
+
+### Remaining Limitations
+
+- Manual entries reset on reload and are not persisted.
+- USD input uses a period decimal separator; broader locale handling is deferred.
+- User-local date handling and a native date picker are deferred.
+- Milestone 04 and all backend, authentication, AI, and email behavior remain out of scope.
 
 ### Commit
 

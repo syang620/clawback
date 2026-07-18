@@ -7,6 +7,19 @@ import { completeWithFeedback } from '@/features/financial-items/hooks/use-compl
 import { useFinancialItems } from '@/features/financial-items/hooks/use-financial-items';
 import { FinancialItemsProvider } from '@/features/financial-items/hooks/use-financial-items';
 import { calculateDashboardMetrics } from '@/features/financial-items/logic/dashboard';
+import { rankFinancialItems } from '@/features/financial-items/logic/urgency';
+import type { CreateFinancialItemInput } from '@/types/financial-item';
+
+const manualPerkInput: CreateFinancialItemInput = {
+  kind: 'perk',
+  title: 'Use new credit',
+  provider: 'Example Card',
+  valueCents: 2_000,
+  chargeAmountCents: null,
+  dueAt: '2026-07-17T12:00:00.000Z',
+  recurrence: 'monthly',
+  actionUrl: null,
+};
 
 function ProviderHarness({
   requestFeedback,
@@ -66,6 +79,32 @@ function ProviderHarness({
   );
 }
 
+function CreationHarness() {
+  const { createItem, items } = useFinancialItems();
+  const metrics = calculateDashboardMetrics(items);
+  const ranked = rankFinancialItems(
+    items,
+    new Date('2026-07-16T12:00:00.000Z'),
+  );
+
+  return (
+    <>
+      <Text>{`Item count ${items.length}`}</Text>
+      <Text>{`Available ${metrics.availableCents}`}</Text>
+      <Text>{`First item ${ranked[0]?.title ?? 'none'}`}</Text>
+      <Text>{`Manual sources ${items.filter((item) => item.source === 'manual').length}`}</Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          createItem(manualPerkInput, new Date('2026-07-18T12:00:00.000Z'))
+        }
+      >
+        <Text>Create manual perk</Text>
+      </Pressable>
+    </>
+  );
+}
+
 describe('Milestone 02 shared financial-item state', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => {
@@ -104,5 +143,21 @@ describe('Milestone 02 shared financial-item state', () => {
     expect(screen.getByText('At risk 59500')).toBeTruthy();
     expect(screen.getByText('Clawed back 0')).toBeTruthy();
     expect(screen.getByText('Completion none')).toBeTruthy();
+  });
+
+  it('creates an active manual item and immediately updates metrics and ranking', () => {
+    const items = createDemoItems(new Date('2026-07-16T00:00:00.000Z'));
+    render(
+      <FinancialItemsProvider initialItems={items}>
+        <CreationHarness />
+      </FinancialItemsProvider>,
+    );
+
+    fireEvent.press(screen.getByText('Create manual perk'));
+
+    expect(screen.getByText('Item count 4')).toBeTruthy();
+    expect(screen.getByText('Available 7700')).toBeTruthy();
+    expect(screen.getByText('First item Use new credit')).toBeTruthy();
+    expect(screen.getByText('Manual sources 1')).toBeTruthy();
   });
 });

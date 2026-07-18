@@ -63,7 +63,8 @@ The existing `.venv/` is ignored and is not required to run the Expo app.
 npm install
 ```
 
-Milestone 01 uses local sample data and does not require environment variables.
+The current application uses local sample and manually entered session data and
+does not require environment variables.
 
 ### Run on web
 
@@ -74,8 +75,9 @@ npm run web
 The web build is configured as a single-page application.
 
 Production hosting must rewrite route requests such as `/activity` and
-`/item/founderscard-trial` to `index.html`. Without that SPA fallback, refreshing
-or directly opening an application route may return the host's 404 response.
+`/item/founderscard-trial`, `/add`, and `/add/manual` to `index.html`. Without
+that SPA fallback, refreshing or directly opening an application route may
+return the host's 404 response.
 
 ### Run on iOS Simulator
 
@@ -121,14 +123,14 @@ npx expo export --platform web
 
 ## Current limitations
 
-- Data is local sample data and resets when the app reloads.
+- Sample and manually created data are local to the current session and reset
+  when the app reloads.
 - Demo dates are generated and displayed as UTC calendar dates for deterministic
   testing. User-local timezone handling is deferred.
-- Checkpoint 2A uses in-memory completion and Undo state. Data resets when the
-  app reloads.
-- Checkpoint 2B swipe-to-strike and safe haptic invocation are implemented;
-  final iOS gesture review is pending. Physical tactile feedback requires a real
-  iPhone and is not verified by the Simulator.
+- Manual entry accepts USD amounts with a period decimal separator and uses a
+  dependency-free `YYYY-MM-DD` calendar-date field.
+- Swipe-to-strike, completion, and Undo are implemented. Physical tactile
+  feedback requires a real iPhone and is not verified by the Simulator.
 - Supabase and GPT-5.6 parsing remain deferred.
 - Android-specific implementation and verification have not begun.
 

@@ -14,7 +14,11 @@ import {
   completeFinancialItem,
   restoreFinancialItem,
 } from '@/features/financial-items/logic/status-transitions';
-import type { FinancialItem } from '@/types/financial-item';
+import { createManualFinancialItem } from '@/features/financial-items/logic/manual-entry';
+import type {
+  CreateFinancialItemInput,
+  FinancialItem,
+} from '@/types/financial-item';
 
 const UNDO_DURATION_MS = 8_000;
 
@@ -26,6 +30,10 @@ interface FinancialItemsContextValue {
   items: FinancialItem[];
   lastCompletion: CompletionRecord | null;
   completeItem: (id: string, completedAt?: Date) => boolean;
+  createItem: (
+    input: CreateFinancialItemInput,
+    createdAt?: Date,
+  ) => FinancialItem;
   dismissUndo: () => void;
   getItem: (id: string) => FinancialItem | null;
   undoLastCompletion: (restoredAt?: Date) => boolean;
@@ -54,7 +62,21 @@ export function FinancialItemsProvider({
     null,
   );
   const itemsRef = useRef(items);
+  const manualItemSequenceRef = useRef(0);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const createItem = useCallback(
+    (input: CreateFinancialItemInput, createdAt = new Date()) => {
+      manualItemSequenceRef.current += 1;
+      const id = `manual-${createdAt.getTime()}-${manualItemSequenceRef.current}`;
+      const item = createManualFinancialItem(input, id, createdAt);
+
+      itemsRef.current = [...itemsRef.current, item];
+      setItems((currentItems) => [...currentItems, item]);
+      return item;
+    },
+    [],
+  );
 
   const replaceItem = useCallback((nextItem: FinancialItem) => {
     itemsRef.current = itemsRef.current.map((item) =>
@@ -128,12 +150,14 @@ export function FinancialItemsProvider({
       items,
       lastCompletion,
       completeItem,
+      createItem,
       dismissUndo,
       getItem,
       undoLastCompletion,
     }),
     [
       completeItem,
+      createItem,
       dismissUndo,
       getItem,
       items,

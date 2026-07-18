@@ -2,13 +2,14 @@ import { type Href, Link, usePathname } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 interface NavigationLinkProps {
-  href: '/' | '/activity';
+  href: '/' | '/activity' | '/add';
   label: string;
 }
 
 function NavigationLink({ href, label }: NavigationLinkProps) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive =
+    pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
 
   return (
     <Link href={href as Href} asChild>
@@ -52,6 +53,7 @@ export function AppHeader() {
       >
         <NavigationLink href="/" label="Home" />
         <NavigationLink href="/activity" label="Activity" />
+        <NavigationLink href="/add" label="+ Add task" />
       </View>
     </View>
   );
