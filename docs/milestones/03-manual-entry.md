@@ -192,7 +192,9 @@ iOS Simulator:
 
 ### Commit
 
-Not created. Per milestone instructions, no commit, tag, or push was performed.
+Accepted work was committed as `9ddbd84` with message
+`feat: add manual financial task creation`, pushed to `origin/main`, tagged
+`milestone-03`, and the tag was pushed successfully.
 
 ### Build Log Updated
 

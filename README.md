@@ -94,19 +94,48 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
 ## Environment Variables
 
-Do not commit real secrets. Milestone 01 does not read any of these variables.
+Do not commit real credentials. Copy `.env.example` to `.env.local` only when
+using a Supabase development project. Leaving both values unset runs local demo
+mode.
 
 The planned client variables are:
 
 ```text
 EXPO_PUBLIC_SUPABASE_URL=
-EXPO_PUBLIC_SUPABASE_ANON_KEY=
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 ```
 
-The OpenAI key belongs only in the Supabase Edge Function environment:
+The publishable key is intended for client use, but authorization still depends
+on Row Level Security. Never place a service-role key, database password, or
+other private secret in an `EXPO_PUBLIC_` variable.
 
-```text
-OPENAI_API_KEY=
+Checkpoint 4A includes the typed client, repositories, migration, and anonymous
+session foundation. Application/provider integration is intentionally deferred
+to Checkpoint 4B, so the current UI still runs in local demo mode.
+
+### Local Supabase checks
+
+Docker is required for the local database checks. Start the stack, rebuild the
+database from committed migrations, lint it, and run the RLS tests with:
+
+```bash
+npx supabase start
+npx supabase db reset
+npx supabase db lint --local --fail-on warning
+npx supabase test db
+```
+
+Regenerate the checked-in database types after a schema change with:
+
+```bash
+npx supabase gen types typescript --local > types/database.ts
+npx prettier --write types/database.ts
+```
+
+Stop the local stack when finished:
+
+```bash
+npx supabase stop
 ```
 
 ## Verification
@@ -131,7 +160,9 @@ npx expo export --platform web
   dependency-free `YYYY-MM-DD` calendar-date field.
 - Swipe-to-strike, completion, and Undo are implemented. Physical tactile
   feedback requires a real iPhone and is not verified by the Simulator.
-- Supabase and GPT-5.6 parsing remain deferred.
+- Supabase application integration and GPT-5.6 parsing remain deferred. The
+  Supabase client, migration, RLS, and repositories exist but are not connected
+  to the provider until Checkpoint 4B.
 - Android-specific implementation and verification have not begun.
 
 ## Build Week Evidence

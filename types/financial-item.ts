@@ -35,3 +35,5 @@ export interface CreateFinancialItemInput {
   recurrence: Recurrence;
   actionUrl: string | null;
 }
+
+export type UpdateFinancialItemInput = Partial<CreateFinancialItemInput>;

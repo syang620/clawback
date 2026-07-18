@@ -246,18 +246,23 @@ Runtime validation must still be applied to network and AI payloads.
 
 ### `financialItemsService`
 
-Expected operations:
+Checkpoint 4A defines one asynchronous `FinancialItemsRepository` contract with
+local and Supabase implementations:
 
 ```ts
-listActiveItems(): Promise<FinancialItem[]>
-getItem(id: string): Promise<FinancialItem>
+listItems(): Promise<FinancialItem[]>
+getItem(id: string): Promise<FinancialItem | null>
 createItem(input: CreateFinancialItemInput): Promise<FinancialItem>
-updateItem(id: string, input: UpdateFinancialItemInput): Promise<FinancialItem>
-completeItem(id: string): Promise<FinancialItem>
-restoreItem(id: string): Promise<FinancialItem>
+updateItem(id: string, input: UpdateFinancialItemInput): Promise<FinancialItem | null>
+completeItem(id: string): Promise<FinancialItem | null>
+restoreItem(id: string): Promise<FinancialItem | null>
+deleteItem(id: string): Promise<boolean>
+ensureInitialSeed(referenceDate?: Date): Promise<void>
 ```
 
-The UI should consume the service interface rather than embedding Supabase queries in components.
+The UI should consume the service interface rather than embedding Supabase
+queries in components. The existing provider remains the application state
+authority when this repository is integrated in Checkpoint 4B.
 
 ### `emailParserService`
 
@@ -316,17 +321,18 @@ All fields must be validated server-side before returning to the client.
 
 ## 11. Authentication Strategy
 
-### Hackathon Default
+### Connected and Demo Modes
 
-Prefer the simplest reliable approach:
+- Connected mode creates or restores a persisted Supabase anonymous session.
+- Every connected user receives a unique Auth user ID, which owns all of that
+  user's rows.
+- RLS policies apply to `authenticated` and require
+  `auth.uid() = user_id` for every operation.
+- Missing Supabase variables select credential-free local demo mode. Partial or
+  unsafe configuration is an error, not a demo-mode fallback.
+- Email/password, OAuth, profiles, and account-upgrade UI are out of scope.
 
-- Demo mode with local data
-- Optional anonymous or email-based Supabase authentication
-- No authentication requirement for viewing the seeded demo
-
-The AI Edge Function may require an authenticated Supabase session in the full implementation. If this threatens demo reliability, a controlled demo endpoint with rate limiting and no persistent raw email storage may be used.
-
-The final approach must be recorded in `DECISIONS.md`.
+This decision is recorded in `DECISIONS.md`.
 
 ## 12. Row Level Security
 
@@ -418,12 +424,18 @@ These functions should be unit tested and must not depend on React or Supabase.
 ## 16. Date and Time Handling
 
 - Store persistent dates as ISO 8601 timestamps.
+- Milestone 04 converts date-only input to 12:00 UTC and converts persisted
+  timestamps back to a UTC `YYYY-MM-DD` value through one shared date utility.
+  This prevents platform-dependent date shifts during the MVP.
 - Preserve timezone information where known.
 - Pass a reference date and user timezone to the AI parser.
 - Avoid parsing ambiguous natural-language dates only on the client.
 - Display deadlines in the user's locale.
 - Test month-end, quarter-end, year-end, and daylight-saving boundaries.
 - Use future dates in demo data.
+
+User-local timezone conversion remains deferred; noon UTC is a deterministic
+testing and storage convention, not the final timezone design.
 
 ## 17. Currency Handling
 
@@ -549,7 +561,7 @@ The demo video may show the iOS Simulator. App Store submission is not required 
 
 ```text
 EXPO_PUBLIC_SUPABASE_URL
-EXPO_PUBLIC_SUPABASE_ANON_KEY
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ```
 
 ### Edge Function

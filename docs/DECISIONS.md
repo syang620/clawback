@@ -157,3 +157,26 @@ Do not silently reverse a decision. Add a new entry that supersedes the old one 
 - `AGENTS.md` acts as repository policy and navigation.
 - Core documents define stable decisions.
 - Milestones define bounded implementation work.
+
+## ADR-012 — Anonymous Authentication for Connected Mode
+
+**Status:** Accepted
+
+**Decision:** Use persisted Supabase anonymous authentication for connected
+mode. Continue to use credential-free local demo mode when Supabase is not
+configured.
+
+**Reason:** Anonymous authentication gives every connected installation a
+unique user ID for durable, RLS-protected data without adding account UI to the
+hackathon MVP.
+
+**Consequences:**
+
+- Connected rows are owned by the anonymous Auth user ID.
+- RLS policies apply only to the `authenticated` role and compare `auth.uid()`
+  with `user_id`.
+- Clearing browser storage, reinstalling the application, or changing devices
+  can make an anonymous user's previous data inaccessible.
+- Email/password, OAuth, profiles, and account upgrades remain out of scope.
+- Connected-mode failures are shown to the user and never silently switch the
+  application into demo mode.

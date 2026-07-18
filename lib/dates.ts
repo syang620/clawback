@@ -13,6 +13,8 @@ export function formatAbsoluteDate(isoDate: string, locale = 'en-US'): string {
 export type CalendarDateInputResult =
   { ok: true; isoDate: string } | { ok: false };
 
+const CALENDAR_DATE_HOUR_UTC = 12;
+
 export function parseCalendarDateInput(value: string): CalendarDateInputResult {
   const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return { ok: false };
@@ -26,7 +28,7 @@ export function parseCalendarDateInput(value: string): CalendarDateInputResult {
 
   const date = new Date(0);
   date.setUTCFullYear(year, month - 1, day);
-  date.setUTCHours(12, 0, 0, 0);
+  date.setUTCHours(CALENDAR_DATE_HOUR_UTC, 0, 0, 0);
 
   if (
     date.getUTCFullYear() !== year ||
@@ -37,4 +39,16 @@ export function parseCalendarDateInput(value: string): CalendarDateInputResult {
   }
 
   return { ok: true, isoDate: date.toISOString() };
+}
+
+export function formatCalendarDateInput(isoDate: string): string {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) {
+    throw new RangeError('Calendar date timestamp must be valid.');
+  }
+
+  const year = date.getUTCFullYear().toString().padStart(4, '0');
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

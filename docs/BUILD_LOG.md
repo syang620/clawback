@@ -470,6 +470,104 @@ validation trustworthy, and update the existing local dashboard immediately.
 
 ### Commit
 
+Committed as `9ddbd84` with message
+`feat: add manual financial task creation`, pushed to `origin/main`, tagged
+`milestone-03`, and the tag was pushed successfully.
+
+### Codex Session
+
+Primary session identifier pending `/feedback` capture.
+
+---
+
+## 2026-07-18 — Milestone 04 Checkpoint 4A Backend Foundation
+
+### Objective
+
+Establish secure Supabase persistence infrastructure, typed repository
+boundaries, anonymous-session support, and deterministic one-time seeding before
+changing the accepted provider or user interface.
+
+### Codex Contribution
+
+- Added the minimal Expo-compatible Supabase dependency set and one typed client
+  with persistent SQLite-backed sessions.
+- Added strict demo/connected/error environment resolution and a single
+  remount-safe native token-refresh lifecycle.
+- Added anonymous session restoration/creation and matching local/Supabase
+  financial-item repositories behind one asynchronous interface.
+- Added runtime database mapping, canonical noon-UTC date-only conversion, and
+  normalized repository/authentication failures.
+- Added a committed schema migration with constraints, timestamps, owner-scoped
+  indexing, RLS, least-privilege grants, and transactional idempotent demo seed.
+- Added generated database types plus focused Jest and pgTAP coverage.
+
+### Team Decisions
+
+- Connected mode uses persisted Supabase anonymous authentication; missing
+  configuration uses credential-free demo mode, while partial or unsafe
+  configuration is an explicit error.
+- All user data and bootstrap markers are owned by `auth.uid()` and exposed only
+  to the `authenticated` role through RLS.
+- The seed function is `SECURITY INVOKER`, accepts no user ID, requires a
+  non-null authenticated identity, and may insert the three demo rows once.
+- Date-only input uses 12:00 UTC consistently during this milestone; user-local
+  timezone conversion remains deferred.
+- The provider remains the future application state authority. No provider or UI
+  integration was started before the Checkpoint 4A hard gate.
+
+### Verification
+
+- `npx expo install --check`: passed
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 20 suites and 104 tests
+- `npx expo export --platform web`: passed, 1,296 modules bundled
+- `git diff --check`: passed
+- `.env`/`.env.local` ignore and application secret scan: passed
+- `npx supabase db reset`: passed locally; migration applied from a clean database
+- `npx supabase db lint --local --fail-on warning`: passed with no schema errors
+- `npx supabase test db`: passed, 37 pgTAP checks
+- Local two-user RLS, unauthenticated-write denial, bootstrap-marker isolation,
+  least-privilege grants, database constraints, timestamp transitions, and
+  one-time seed behavior: passed
+- Hosted publishable-key connection, anonymous sign-in, and same-client session
+  recovery: passed
+- Hosted `financial_items` read: blocked with `PGRST205` because the table is not
+  available through the hosted API; migration and hosted RLS checks remain pending
+- Expo web export using the ignored `.env.local`: passed without exposing values
+
+### Problems and Resolutions
+
+- The initial dependency installation stalled in the restricted environment;
+  the approved network-enabled retry completed successfully.
+- An unused `@supabase/ssr` dependency was removed so the dependency set contains
+  only packages required by the current Expo/Supabase guidance.
+- Freshly generated database types differed only in formatting until the
+  project formatter was applied; the checked-in types now follow repository
+  formatting.
+- The local Supabase stack initially downloaded its Docker images and reported
+  transient registry rate warnings, then started successfully. Clean reset,
+  schema lint, and pgTAP verification all passed afterward.
+- Hosted anonymous authentication succeeded, but the read-only database check
+  returned `PGRST205`; the committed migration has not yet made
+  `public.financial_items` available through that project's API.
+- npm continues to report the existing 11 moderate transitive findings. No
+  forced or incompatible audit remediation was applied.
+
+### Remaining Limitations
+
+- Checkpoint 4B has not started. The current provider/UI still uses local seeded
+  and session-only data.
+- Connected-mode web refresh and iOS relaunch persistence are not testable until
+  the provider is integrated.
+- The migration must be applied to the hosted development project before hosted
+  RLS verification can run.
+- Anonymous identities cannot be recovered after local auth storage is removed.
+
+### Commit
+
 Not created. No commit, tag, or push was performed.
 
 ### Codex Session

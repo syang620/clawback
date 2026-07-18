@@ -25,6 +25,10 @@ web-build/
 expo-env.d.ts
 .metro-health-check*
 
+# Supabase CLI
+/supabase/.branches/
+/supabase/.temp/
+
 # TypeScript
 *.tsbuildinfo
 

@@ -103,32 +103,96 @@ Manual checks:
 
 ## Completion Record
 
-To be filled in after implementation.
+This record covers Checkpoint 4A only. Checkpoint 4B application integration has
+not started.
 
 ### Status
 
-Not started
+Checkpoint 4A implemented. The automated application gate and local Supabase
+CLI/Docker database gate passed. Hosted anonymous authentication passed after
+local configuration, but hosted database/RLS verification remains blocked
+because `public.financial_items` is not available through the hosted API.
+
+Milestone 04 is not complete or accepted until Checkpoint 4B is implemented and
+its web and iOS persistence checks pass.
 
 ### Files Changed
 
-- Pending
+- Added conservative Supabase environment resolution, a singleton typed client,
+  persisted Expo SQLite session storage, and a remount-safe native token-refresh
+  lifecycle.
+- Added anonymous session creation/restoration and normalized authentication
+  errors.
+- Added a shared asynchronous `FinancialItemsRepository` interface with local
+  and Supabase implementations, runtime row mapping, UTC calendar-date mapping,
+  conditional status transitions, and normalized repository errors.
+- Added the `financial_items` and `financial_item_bootstrap` migration with
+  constraints, timestamps, an owner-scoped index, RLS, least-privilege grants,
+  and transactional one-time demo seeding.
+- Added generated database types and focused environment, mapping, auth,
+  lifecycle, local-repository, Supabase-repository, date round-trip, constraint,
+  seed, privilege, and RLS tests.
+- Updated environment examples, setup/architecture/security decisions, prior
+  Milestone 03 commit metadata, and this build record.
 
 ### Verification Results
 
-- Pending
+- `npx expo install --check`: passed; dependencies are up to date.
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm run format:check`: passed.
+- `npm test`: passed, 20 suites and 104 tests.
+- `npx expo export --platform web`: passed; 1,296 modules bundled and production
+  output exported to `dist/`.
+- `git diff --check`: passed.
+- Environment/security scan: passed; `.env` and `.env.local` are ignored,
+  `.env.example` remains allowed, and no service-role, OpenAI, or database
+  password identifier exists in application source.
+- `npx supabase db reset`: passed against the local CLI/Docker stack; the
+  committed migration applied from a clean database. The expected warning that
+  no optional `supabase/seed.sql` exists was reported.
+- `npx supabase db lint --local --fail-on warning`: passed with no schema errors.
+- `npx supabase test db`: passed, 37 pgTAP checks.
+- Local RLS proof passed with distinct User A and User B identities: each can
+  create/read owned rows, User A cannot read/update/delete User B rows, bootstrap
+  markers are isolated, and the Postgres `anon` role cannot insert.
+- Local bootstrap proof passed: execution is restricted to `authenticated`, a
+  non-null `auth.uid()` is required, the function is `SECURITY INVOKER` and
+  `VOLATILE`, repeated calls are a no-op, and exactly three noon-UTC demo rows
+  are inserted once with FoundersCard earliest.
+- Hosted publishable-key connection and anonymous sign-in: passed. The resulting
+  session was recoverable from the same client without creating a second user.
+- Hosted read-only `financial_items` query: blocked with PostgREST code
+  `PGRST205`; the table is not currently available in the hosted API schema, so
+  the committed migration and hosted RLS checks are not recorded as passed.
+- Expo web export with the ignored `.env.local`: passed without exposing values.
+- Database types were generated from the local schema. Regenerate them with
+  `npx supabase gen types typescript --local > types/database.ts`, followed by
+  `npx prettier --write types/database.ts`.
 
 ### Manual Review
 
-- Pending
+- No user-interface behavior changed in Checkpoint 4A, so connected-mode web and
+  iOS persistence checks are deferred to Checkpoint 4B.
+- Credential-free demo mode remains the active application path because the
+  provider has intentionally not been integrated yet.
 
 ### Known Limitations
 
-- Pending
+- The provider and routes do not use the repositories yet; there are no
+  connected-mode loading, mutation, or error states until Checkpoint 4B.
+- The committed migration must be applied to the hosted development project
+  before hosted-project RLS verification can run.
+- Anonymous identity recovery after storage clearing, reinstall, or device
+  change is out of scope because there is no account-upgrade UI.
+- Date-only values use 12:00 UTC as the Milestone 04 deterministic convention.
+  User-local timezone conversion remains deferred.
+- This checkpoint adds no broad offline synchronization system.
 
 ### Commit
 
-- Pending
+Not created. No commit, tag, or push was performed.
 
 ### Build Log Updated
 
-- [ ] `docs/BUILD_LOG.md`
+- [x] `docs/BUILD_LOG.md`
