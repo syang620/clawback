@@ -92,28 +92,120 @@ To be filled in after implementation.
 
 ### Status
 
-Not started
+Checkpoints 2A and 2B are accepted, and Milestone 02 is accepted as complete.
+Automated verification, web regression review, and iOS Simulator gesture review
+passed. Physical tactile haptic feedback remains unverified without a real iPhone.
 
 ### Files Changed
 
-- Pending
+- Shared in-memory financial-item provider with completion and Undo
+- Deterministic urgency, relative-deadline, ranking, and status-transition logic
+- Home, Activity, and task-detail routes with accessible button interactions
+- HTTPS action-link validation and truthful protected/reclaimed copy
+- Focused Checkpoint 2A business-logic and platform-safe component tests
+- SPA fallback guidance in `README.md`
+- Corrected Milestone 01 commit, tag, push, and review records
+- Expo-managed Gesture Handler and Haptics dependencies
+- Atomic provider completion guard and shared completion-with-feedback callback
+- Measurement-gated native swipe-to-strike with Reanimated feedback
+- Consolidated reduced-motion preference and local gesture reset handling
+- Focused swipe, haptic, reduced-motion, and rapid-completion tests
 
 ### Verification Results
 
-- Pending
+- `npx expo install --check` passed using Expo's offline dependency map; Expo
+  repeated that offline dependency validation is less reliable.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run format:check` passed.
+- `npm test` passed: 12 suites and 47 tests.
+- `npx expo export --platform web` passed and produced the SPA in `dist/`.
+- Development-server HTTP refresh checks returned 200 for `/`, `/activity`, a
+  valid `/item/[id]`, and an unknown item route.
+- A temporary standard-library server with an `index.html` fallback returned
+  the same exported SPA document with HTTP 200 for all four routes. No permanent
+  server or dependency was added.
+- Full Xcode readiness is now confirmed: Xcode 26.6, build 17F113.
+- `react-native-gesture-handler` 2.32.0 and `expo-haptics` 57.0.1 are installed
+  at Expo SDK 57-compatible versions.
+- Checkpoint 2B development-server route checks returned HTTP 200 for Home,
+  Activity, a valid item, and an unknown item.
+- The Checkpoint 2B exported SPA returned the same `index.html` with HTTP 200 for
+  all four routes through the temporary fallback server.
+- The iOS bundle compiled and rendered in Expo Go on an iPhone 17 Pro Simulator.
+  A screenshot confirmed the dashboard and completion controls rendered.
+- The first non-CI iOS server later exited with
+  `WS_ERR_TOO_MANY_BUFFERED_PARTS`. A CI-mode retry bundled in 832 ms, rendered,
+  and remained stable during subsequent polling.
 
 ### Manual Review
 
-- Pending
+Passed:
+
+- Initial dashboard metrics
+- Separate urgency, relative-deadline, and absolute-date presentation
+- Home-to-Activity navigation
+- Home-to-detail navigation and Browser Back
+- Direct and refreshed SPA routes
+- Unknown-item recovery state
+- Trial completion, Activity placement, metric updates, and Undo
+- Perk completion, metric updates, and Undo
+- Keyboard activation and visible focus
+- Undo live announcement
+- Responsive layout
+- Browser console review
+- HTTPS action-link presentation
+
+Observation:
+
+- The blue Available, red At Risk, and green Clawed Back themes are accepted.
+  A possible later treatment using stronger backgrounds, white values, and
+  supporting symbols is tracked in Milestone 06 demo polish. No Checkpoint 2A
+  product-code change was required.
+
+Checkpoint 2B web regression passed:
+
+- No swipe dependency on web
+- Complete and metric updates
+- Rapid duplicate activation protection
+- Activity entry count
+- Undo restoration
+- Keyboard activation and visible focus
+- Navigation and SPA routes
+- Browser console review
+- Responsive layout and overflow
+
+Checkpoint 2B iOS Simulator review passed:
+
+- Full swipe beyond the activation threshold completes exactly once
+- Below-threshold swipe returns fully closed
+- Partial swipe followed by Complete leaves no stale translation
+- Undo restores a fresh closed card
+- Navigation resets partial gesture state
+- Vertical scrolling remains usable around swipeable cards
+- Reduced Motion removes swipe and animation
+- Complete, metrics, Activity, and Undo work with Reduced Motion
+- Expo Haptics executed without runtime errors
+- No Metro gesture, animation, or navigation errors were observed
+
+Physical tactile feedback was not verified because testing used the Simulator.
 
 ### Known Limitations
 
-- Pending
+- State is local and resets on reload.
+- UTC calendar arithmetic remains a deterministic demo/testing convention;
+  user-local timezone handling is deferred.
+- Production SPA hosting requires an `index.html` fallback for application routes.
+- Simulator execution cannot verify physical tactile feedback. Actual haptics
+  remain unverified until tested on a real iPhone.
+- One earlier Expo development session encountered
+  `WS_ERR_TOO_MANY_BUFFERED_PARTS`. A clean `CI=1 EXPO_OFFLINE=1` session bundled
+  and remained stable, and no corresponding application defect was observed.
 
 ### Commit
 
-- Pending
+Not created. Per milestone instructions, no commit, tag, or push was performed.
 
 ### Build Log Updated
 
-- [ ] `docs/BUILD_LOG.md`
+- [x] `docs/BUILD_LOG.md`

@@ -178,7 +178,206 @@ local deterministic demo data, without beginning Milestone 02.
 
 ### Commit
 
-Pending manual review. No commit or push was created.
+- Commit: `48eb865`
+- Tag: `milestone-01`
+- Push: successful to `origin/main`, including the milestone tag
+
+### Codex Session
+
+Primary session identifier pending `/feedback` capture.
+
+## 2026-07-17 — Milestone 02 Checkpoint 2A Core Behavior
+
+### Objective
+
+Implement deterministic prioritization, shared local completion state, visible
+Complete and Undo controls, task details, and Activity without beginning the
+native swipe checkpoint.
+
+### Codex Contribution
+
+- Corrected the accepted Milestone 01 record with commit `48eb865`, tag
+  `milestone-01`, and successful push details while preserving its exact manual status.
+- Added deterministic UTC urgency bands, exact relative deadline labels, and the
+  approved ranking tie-break order.
+- Added pure completion/restoration transitions and shared in-memory route state.
+- Added Home, Activity, and task-detail navigation, accessible Complete and Undo
+  controls, and explicit HTTPS action links.
+- Added focused unit and component coverage, including duplicate-completion and
+  invalid-link behavior.
+
+### Team Decisions
+
+- Urgency presentation and relative deadline wording are separate.
+- Ranking uses urgency band, exact deadline, relevant amount, risk-bearing kind,
+  and ID in that order.
+- Past-due active items remain visible and are not silently expired.
+- Production SPA hosts must fall back application routes to `index.html`.
+- Checkpoint 2A manual web review passed before Checkpoint 2B planning began.
+- The current metric-card color themes are accepted. Stronger backgrounds,
+  white values, and supporting symbols are deferred to Milestone 06 review.
+
+### Files Changed
+
+- `app/`, `components/`, and `features/financial-items/`
+- `lib/urls.ts`
+- `tests/`
+- `README.md`
+- Milestone completion records and `docs/BUILD_LOG.md`
+
+### Verification
+
+- `npx expo install --check`: passed with Expo's offline-validation warning
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 9 suites and 38 tests
+- `npx expo export --platform web`: passed
+- Development HTTP route refreshes: `/`, `/activity`, valid detail, and unknown
+  detail returned 200
+- Temporary production SPA fallback: the same four routes returned the exported
+  `index.html` with HTTP 200
+- Manual web review: passed for metrics, deadline presentation, navigation,
+  direct and refreshed routes, recovery, trial and perk completion, Activity,
+  Undo, keyboard/focus behavior, live announcement, responsiveness, console,
+  and HTTPS action-link presentation
+- Xcode readiness: Xcode 26.6, build 17F113 confirmed
+
+### Problems and Resolutions
+
+- Expo's generated typed-route cache did not initially include the new routes;
+  route hrefs were kept type-safe across generation, and export refreshed the cache.
+- A stale Expo process occupied port 8081 and served an obsolete module error. It
+  was stopped, the current application was started, and all route checks then passed.
+- No browser-control session was exposed during implementation, so interactive
+  behavior was initially left pending. The subsequent user-run manual web review
+  passed every Checkpoint 2A item.
+
+### Remaining Limitations
+
+- State is local and resets on refresh.
+- A possible higher-contrast metric-card treatment with symbols is deferred to
+  Milestone 06 demo polish; the current blue, red, and green themes remain accepted.
+- Checkpoint 2B swipe, animation, haptics, reduced-motion fallback, and iOS
+  Simulator verification have not started.
+- Backend, authentication, manual entry, email parsing, and notifications remain out of scope.
+
+### Commit
+
+Not created. No commit, tag, or push was performed.
+
+### Codex Session
+
+Primary session identifier pending `/feedback` capture.
+
+---
+
+## 2026-07-17 — Milestone 02 Checkpoint 2B Swipe-to-Strike
+
+### Objective
+
+Add the native iOS swipe-to-strike interaction, Reanimated feedback, safe
+haptics, reduced-motion behavior, and deterministic gesture cleanup without
+changing Checkpoint 2A task semantics.
+
+### Codex Contribution
+
+- Installed Expo SDK 57-compatible Gesture Handler 2.32.0 and Haptics 57.0.1.
+- Strengthened the provider's synchronous item ref and functional React update
+  so rapid completion calls are atomic before rerender.
+- Added one shared completion-with-feedback path that requests haptics only when
+  the provider accepts the transition.
+- Added a measurement-gated left-to-right swipe with an exact 60% threshold and
+  Reanimated strike feedback.
+- Added consolidated reduced-motion handling that defaults to no animation while
+  the preference resolves and cleans up its accessibility listener.
+- Added local-only reset behavior for completion, route blur, unmount, Undo
+  remounting, and button completion from a partial swipe.
+- Expanded the test suite from 38 to 47 tests across 12 suites.
+
+### Team Decisions
+
+- The provider remains the authoritative task-state and duplicate-completion guard.
+- Swipe is unavailable before positive-width measurement; the Complete button
+  remains usable throughout.
+- Web and reduced-motion modes omit the swipe wrapper and animated strike entirely.
+- Route and unmount cleanup reset only gesture-local state.
+- Simulator haptic execution cannot prove physical tactile feedback.
+- Checkpoints 2A and 2B are accepted after automated, web, and iOS Simulator review.
+
+### Files Changed
+
+- `package.json` and `package-lock.json`
+- `app/_layout.tsx` and completion route wiring
+- Financial-item provider, hooks, card list, and new swipe component
+- `hooks/use-reduced-motion-preference.ts` and `lib/haptics.ts`
+- Focused provider, swipe, haptic, and reduced-motion tests
+- Milestone documentation and `README.md`
+
+### Verification
+
+- `npx expo install --check`: passed with Expo's offline-validation warning
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 12 suites and 47 tests
+- `npx expo export --platform web`: passed
+- `git diff --check`: passed
+- Development web route checks: Home, Activity, valid detail, and unknown detail
+  returned HTTP 200
+- Exported SPA fallback: the same four routes returned identical `index.html`
+  documents with HTTP 200
+- iOS: bundled and rendered in Expo Go on the iPhone 17 Pro Simulator
+- iOS CI-mode retry: bundled in 832 ms and remained connected during polling
+
+### Manual Review
+
+Checkpoint 2B web regression passed:
+
+- No swipe dependency on web
+- Complete and metric updates
+- Rapid duplicate activation protection
+- Activity entry count
+- Undo restoration
+- Keyboard activation and visible focus
+- Navigation and SPA routes
+- Browser console review
+- Responsive layout and overflow
+
+Checkpoint 2B iOS Simulator review passed:
+
+- Full swipe beyond the activation threshold completes exactly once
+- Below-threshold swipe returns fully closed
+- Partial swipe followed by Complete leaves no stale position
+- Undo restores a fresh closed card
+- Navigation resets partial gesture state
+- Vertical scrolling remains usable
+- Reduced Motion removes swipe and animation
+- Complete, metrics, Activity, and Undo work with Reduced Motion
+- Expo Haptics executed without runtime errors
+- No Metro gesture, animation, or navigation errors were observed
+
+Physical tactile feedback was not verified because testing used the Simulator.
+
+### Problems and Resolutions
+
+- The first offline dependency installation stalled during npm resolution. The
+  approved versions were retained and `npm install` completed the lockfile and modules.
+- npm continues to report the known 11 moderate transitive findings. No audit fix
+  or forced incompatible remediation was applied.
+- One earlier Expo session encountered `WS_ERR_TOO_MANY_BUFFERED_PARTS`. A clean
+  `CI=1 EXPO_OFFLINE=1` session bundled and remained stable, and no corresponding
+  application defect was observed.
+
+### Remaining Limitations
+
+- Physical tactile feedback remains unverified until tested on a real iPhone.
+- State remains local and resets on refresh.
+- Backend, authentication, manual entry, email parsing, and notifications remain out of scope.
+
+### Commit
+
+Not created. No commit, tag, or push was performed.
 
 ### Codex Session
 

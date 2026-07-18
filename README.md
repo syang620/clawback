@@ -73,6 +73,10 @@ npm run web
 
 The web build is configured as a single-page application.
 
+Production hosting must rewrite route requests such as `/activity` and
+`/item/founderscard-trial` to `index.html`. Without that SPA fallback, refreshing
+or directly opening an application route may return the host's 404 response.
+
 ### Run on iOS Simulator
 
 ```bash
@@ -115,13 +119,17 @@ npm test
 npx expo export --platform web
 ```
 
-## Milestone 01 limitations
+## Current limitations
 
 - Data is local sample data and resets when the app reloads.
 - Demo dates are generated and displayed as UTC calendar dates for deterministic
   testing. User-local timezone handling is deferred.
-- Add flows, Activity, task details, completion, swipe-to-strike, haptics, Undo,
-  Supabase, and GPT-5.6 parsing belong to later milestones.
+- Checkpoint 2A uses in-memory completion and Undo state. Data resets when the
+  app reloads.
+- Checkpoint 2B swipe-to-strike and safe haptic invocation are implemented;
+  final iOS gesture review is pending. Physical tactile feedback requires a real
+  iPhone and is not verified by the Simulator.
+- Supabase and GPT-5.6 parsing remain deferred.
 - Android-specific implementation and verification have not begun.
 
 ## Build Week Evidence

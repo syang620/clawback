@@ -19,6 +19,9 @@ A judge can understand Clawback quickly, complete the core workflow without assi
 ## In Scope
 
 - Visual hierarchy refinement
+- Review whether metric cards should use stronger semantic backgrounds, white
+  values, and supporting symbols while retaining the accepted blue, red, and
+  green themes
 - Responsive web polish
 - Completion animation refinement
 - Empty states

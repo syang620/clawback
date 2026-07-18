@@ -126,9 +126,10 @@ To be filled in after implementation.
 
 ### Status
 
-Implemented; automated checks and both web smoke checks pass. Desktop manual
-review passed, with the remaining viewport, accessibility, state, console, and
-iOS checks documented below as pending.
+Accepted, committed, tagged, and pushed. Automated checks and both web smoke
+checks pass. Desktop manual review passed, with the remaining viewport,
+accessibility, state, and console checks documented below as pending. iOS
+verification is deferred until the full Xcode environment is available.
 
 ### Files Changed
 
@@ -205,7 +206,9 @@ Pending manual verification:
 
 ### Commit
 
-Pending manual review; no commit or push was created.
+- Commit: `48eb865`
+- Tag: `milestone-01`
+- Push: successful to `origin/main`, including the milestone tag
 
 ### Build Log Updated
 

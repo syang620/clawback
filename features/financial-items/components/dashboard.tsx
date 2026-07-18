@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 
+import { AppHeader } from '@/components/app-header';
 import { MetricCard } from '@/components/metric-card';
 import { Screen } from '@/components/screen';
 import { FinancialItemList } from '@/features/financial-items/components/financial-item-list';
@@ -7,27 +8,23 @@ import { calculateDashboardMetrics } from '@/features/financial-items/logic/dash
 import type { FinancialItem } from '@/types/financial-item';
 
 interface DashboardProps {
+  isRouteFocused?: boolean;
   items: FinancialItem[];
+  onComplete: (id: string) => boolean;
+  referenceDate: Date;
 }
 
-export function Dashboard({ items }: DashboardProps) {
+export function Dashboard({
+  isRouteFocused = true,
+  items,
+  onComplete,
+  referenceDate,
+}: DashboardProps) {
   const metrics = calculateDashboardMetrics(items);
 
   return (
     <Screen>
-      <View className="flex-row items-center justify-between gap-4">
-        <View className="min-w-0 flex-1">
-          <Text className="text-3xl font-black tracking-tight text-ink">
-            CLAWBACK
-          </Text>
-          <Text className="mt-1 text-base text-slate">
-            Stop leaving money on the table.
-          </Text>
-        </View>
-        <View className="rounded-full border border-brand/20 bg-blue-50 px-3 py-2">
-          <Text className="text-xs font-bold text-brand">Sample data</Text>
-        </View>
-      </View>
+      <AppHeader />
 
       <View className="mt-8 flex-row flex-wrap gap-3">
         <MetricCard
@@ -55,11 +52,17 @@ export function Dashboard({ items }: DashboardProps) {
           Your next moves
         </Text>
         <Text className="mt-1 text-sm leading-5 text-slate">
-          Start with the closest deadline. Dates are shown as calendar dates.
+          Prioritized by deadline and financial impact. Dates are shown as
+          calendar dates.
         </Text>
       </View>
 
-      <FinancialItemList items={items} />
+      <FinancialItemList
+        isRouteFocused={isRouteFocused}
+        items={items}
+        onComplete={onComplete}
+        referenceDate={referenceDate}
+      />
     </Screen>
   );
 }
