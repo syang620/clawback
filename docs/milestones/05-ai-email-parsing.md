@@ -127,7 +127,8 @@ Planned scope:
 - Explicit Save with `source: email`
 - Persistence failure recovery
 - Responsive web and iOS accessibility checks
-- Live model evaluation recorded separately from normal tests
+
+### Checkpoint 5B-3 — Live Model Evaluation
 
 Required live evaluation models are GPT-5.6 and `qwen3.5:9b`. Run core fixtures
 once, then run safety-critical or inconsistent fixtures three times.
@@ -183,7 +184,93 @@ limits for the hackathon MVP. The owner-only OpenAI project budget/alert
 configuration remains pending and unverified because its control has not yet
 been located in the account UI; it does not block this build. Checkpoint 5A is
 accepted. Checkpoint 5B-1 is implemented and has passed its hard gate.
-Checkpoint 5B-2 routes and review UI have not started.
+Checkpoint 5B-2 route-local workflow and review UI are implemented and have
+passed automated verification. The owner accepted Checkpoint 5B-2 for every
+check marked passed below. The rate-limit UI result is automated-only, and
+VoiceOver labels and reading order remain untested. Checkpoint 5B-3 model
+evaluation has not started.
+
+### Checkpoint 5B-2 Automated Gate
+
+- `npx expo install --check`: passed; dependencies are compatible
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 28 suites and 193 tests
+- `npx expo export --platform web`: passed; production web output exported
+- `git diff --check`: passed
+- Deno format, lint, and type-check: passed
+- Deno mocked tests: passed, 19 tests
+- Local database lint: passed with no schema findings
+- Local pgTAP: passed, 62 tests across two files
+- Connected Add menu and direct route: covered with mocked route tests
+- Local demo menu and direct `/add/email` guidance: covered; the parser service
+  is not constructed or invoked
+- Input validation and character counts: covered at empty, accepted, and
+  exceeded 20,000-character email and 500-character subject boundaries
+- Extraction lifecycle: covered for successful review, duplicate prevention,
+  no-action result, stale/superseded response rejection, Cancel, blur, unmount,
+  and app-background abort behavior
+- Safe errors: every normalized client error category is covered without raw
+  backend details; rate-limited input remains preserved and retry is disabled
+  for the server-provided wait
+- Review and persistence: covered for editable fields, null versus explicit
+  zero, explicit recurrence, deterministic money/date/HTTPS validation,
+  `source: email`, validated confidence, pessimistic Save, failed-write edit
+  preservation, and navigation only after commit
+- Sensitive-state policy: covered for clearing before navigation and fixed
+  route destinations; raw email is never put in URL or provider state
+- Accessibility: covered for labels, alerts, character counts, and busy states
+- Manual-entry regression: passed after extracting the shared field editor
+
+### Checkpoint 5B-2 Owner Review
+
+Connected web:
+
+- Extract from email visible in Connected mode: passed
+- Successful extraction reached editable review: passed
+- Explicit Save required before persistence: passed
+- Reviewed task persisted after refresh: passed
+- Persisted source was `email`: passed
+- Ranking, metrics, details, completion, Activity, and Undo: passed
+
+Extraction behavior:
+
+- Missing deadline remained blank and blocked Save: passed
+- Explicit zero remained distinct from blank: passed
+- No-actionable result created no candidate or item: passed
+- Network failure preserved email and subject: passed
+- Retry succeeded without duplicate requests: passed
+- Rate-limit wait and disabled Retry: passed in automated tests only; hosted
+  quota exhaustion was intentionally not repeated
+
+Save failure:
+
+- Review edits survived failed persistence: passed
+- Failed Save did not navigate or create a false item: passed
+- Retry Save created exactly one item: passed
+- Extraction was not rerun: passed
+
+Privacy:
+
+- Raw email absent from URL: passed
+- Raw email absent from console and Metro logs: passed
+- Raw email absent from browser storage: passed
+- Raw email absent from Supabase rows: passed
+- Cancel and successful navigation explicitly cleared route draft: passed
+
+Accessibility and layout:
+
+- Keyboard-only web operation: passed
+- Focus indicators and announcements: passed
+- 200% zoom and responsive layout: passed
+- iOS keyboard avoidance and scrolling: passed
+- iOS background interruption behavior: passed
+- VoiceOver labels and reading order: not tested
+- Metro/navigation errors: none observed; passed
+
+Checkpoint 5B-3 live GPT-5.6 and Ollama evaluation is intentionally outside
+this checkpoint and has not begun.
 
 ### Checkpoint 5B-1 Hard Gate
 

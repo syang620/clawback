@@ -815,10 +815,79 @@ item provenance before adding the pasted-email route or review UI.
 
 ### Remaining Scope
 
-- Checkpoint 5B-2 route, input state machine, editable review form, explicit
-  email-source Save, and manual web/iOS review have not started.
+- Checkpoint 5B-2 route, input state machine, editable review form, and explicit
+  email-source Save are implemented and owner-reviewed. The rate-limit UI was
+  verified through automated tests only, and VoiceOver remains untested.
 - The OpenAI project soft-budget configuration remains pending owner action and
   unverified.
+
+### Commit
+
+Not created. No commit, tag, or push was performed.
+
+---
+
+## 2026-07-19 — Milestone 05 Checkpoint 5B-2 Client Workflow
+
+### Objective
+
+Add the route-local pasted-email extraction, mandatory review, and explicit
+email-source Save workflow without beginning live model evaluation.
+
+### Codex Contribution
+
+- Added `/add/email` with explicit input, extracting, review, no-actionable,
+  extraction-failure, saving, and save-failure states.
+- Kept raw email, subject, candidate edits, warnings, and errors route-local and
+  cleared them before navigation or route replacement.
+- Added generation, abort, focus, mount, and app-state guards so cancelled,
+  superseded, backgrounded, or late requests do not surface as provider errors
+  or overwrite newer state.
+- Added accessible input limits, safe normalized failures, a single
+  server-directed rate-limit countdown, and input-preserving retry behavior.
+- Reused a shared financial-item field editor for mandatory provider-neutral
+  review while preserving the accepted manual-entry workflow.
+- Added explicit recurrence selection, null-versus-zero preservation, bounded
+  warnings, and deterministic money, date, and HTTPS validation.
+- Persisted reviewed candidates pessimistically through
+  `FinancialItemsProvider` with `source: email` and validated confidence,
+  retaining all edits after a failed write.
+- Added readable Local demo guidance and ensured direct demo access cannot
+  construct or invoke the extraction service.
+
+### Verification
+
+- Expo dependency check, TypeScript, lint, formatting, 28 Jest suites with 193
+  tests, production web export, and `git diff --check`: passed
+- Deno format, lint, type-check, and 19 mocked tests: passed
+- Local database lint: passed with no schema findings
+- Local pgTAP: passed, 62 tests across two files
+- Jest coverage includes connected/demo routing, input bounds, all normalized
+  errors, rate limiting, duplicate and stale requests, lifecycle aborts,
+  no-action results, review editing, recurrence, null/zero money, email
+  provenance, pessimistic Save, failed-write preservation, sensitive-state
+  clearing, accessibility states, and manual-entry regression
+- No live OpenAI or Ollama request ran as part of normal automated tests
+
+### Owner Review
+
+- Connected web entry, editable extraction review, explicit Save, refresh
+  persistence, `source: email`, ranking, metrics, details, completion,
+  Activity, and Undo: passed
+- Missing-deadline blocking, null-versus-zero handling, no-actionable result,
+  network-failure input preservation, and duplicate-safe retry: passed
+- Rate-limit wait and disabled Retry: passed in automated tests only; hosted
+  quota exhaustion was intentionally not repeated
+- Failed-Save edit preservation, truthful navigation/state, direct retry,
+  exactly-once creation, and no extraction rerun: passed
+- Raw email absence from URL, console, Metro, browser storage, and Supabase
+  rows, plus route-draft clearing after Cancel and successful navigation: passed
+- Keyboard-only web use, focus indicators, announcements, 200% zoom,
+  responsive layout, iOS keyboard avoidance/scrolling, background interruption,
+  and Metro/navigation logs: passed
+- VoiceOver labels and reading order: not tested
+- Checkpoint 5B-2 is accepted for the checks marked passed above
+- Checkpoint 5B-3 model evaluation remains not started
 
 ### Commit
 

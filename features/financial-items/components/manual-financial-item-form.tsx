@@ -1,26 +1,20 @@
-import { type Ref, useMemo, useRef, useState } from 'react';
-import {
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  type TextInputProps,
-  View,
-} from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, Text, TextInput, View } from 'react-native';
 
 import {
+  FinancialItemFields,
+  type FinancialItemEditorValues,
+} from '@/features/financial-items/components/financial-item-fields';
+import {
   createEmptyManualFinancialItemForm,
-  financialItemKinds,
   type ManualFinancialItemErrors,
   type ManualFinancialItemField,
   type ManualFinancialItemFormValues,
-  recurrenceOptions,
   validateManualFinancialItem,
 } from '@/features/financial-items/logic/manual-entry';
 import type {
   CreateFinancialItemInput,
   FinancialItemKind,
-  Recurrence,
 } from '@/types/financial-item';
 
 interface ManualFinancialItemFormProps {
@@ -29,66 +23,6 @@ interface ManualFinancialItemFormProps {
   onDismissSaveError?: () => void;
   onSave: (input: CreateFinancialItemInput) => Promise<boolean>;
   saveError?: { message: string } | null;
-}
-
-interface LabeledTextInputProps extends TextInputProps {
-  error?: string;
-  hint?: string;
-  inputRef?: Ref<TextInput>;
-  label: string;
-  optional?: boolean;
-}
-
-const kindLabels: Record<FinancialItemKind, string> = {
-  trial: 'Trial',
-  perk: 'Perk',
-  subscription: 'Subscription',
-};
-
-const recurrenceLabels: Record<Recurrence, string> = {
-  none: 'Does not repeat',
-  monthly: 'Monthly',
-  quarterly: 'Quarterly',
-  annual: 'Annual',
-  custom: 'Custom',
-};
-
-function LabeledTextInput({
-  error,
-  hint,
-  inputRef,
-  label,
-  optional = false,
-  ...inputProps
-}: LabeledTextInputProps) {
-  return (
-    <View>
-      <Text className="text-sm font-extrabold text-ink">
-        {label}{' '}
-        <Text className="font-semibold text-slate">
-          {optional ? '(optional)' : '(required)'}
-        </Text>
-      </Text>
-      <TextInput
-        accessibilityHint={error ?? hint}
-        accessibilityLabel={`${label}${optional ? ', optional' : ', required'}${error ? `. Error: ${error}` : ''}`}
-        className={`mt-2 min-h-12 rounded-xl border bg-surface px-4 py-3 text-base text-ink web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand ${
-          error ? 'border-risk' : 'border-line'
-        }`}
-        placeholderTextColor="#7A8794"
-        ref={inputRef}
-        {...inputProps}
-      />
-      {(error || hint) && (
-        <Text
-          accessibilityLiveRegion={error ? 'polite' : 'none'}
-          className={`mt-1.5 text-sm leading-5 ${error ? 'font-semibold text-risk' : 'text-slate'}`}
-        >
-          {error ?? hint}
-        </Text>
-      )}
-    </View>
-  );
 }
 
 export function ManualFinancialItemForm({
@@ -107,14 +41,6 @@ export function ManualFinancialItemForm({
   const isSubmittingRef = useRef(false);
   const titleRef = useRef<TextInput>(null);
 
-  const moneyFields = useMemo(
-    () =>
-      values.kind === 'perk'
-        ? (['valueAvailable', 'chargeAtRisk'] as const)
-        : (['chargeAtRisk', 'valueAvailable'] as const),
-    [values.kind],
-  );
-
   const updateValue = <Field extends keyof ManualFinancialItemFormValues>(
     field: Field,
     value: ManualFinancialItemFormValues[Field],
@@ -128,6 +54,14 @@ export function ManualFinancialItemForm({
     });
     setFormError(null);
     onDismissSaveError?.();
+  };
+
+  const updateEditorValue = <Field extends keyof FinancialItemEditorValues>(
+    field: Field,
+    value: FinancialItemEditorValues[Field],
+  ) => {
+    if (field === 'recurrence' && value === null) return;
+    updateValue(field as keyof ManualFinancialItemFormValues, value as never);
   };
 
   const submit = async () => {
@@ -176,169 +110,12 @@ export function ManualFinancialItemForm({
         </View>
       )}
 
-      <View className="mt-7 gap-7">
-        <View>
-          <Text className="text-sm font-extrabold text-ink">
-            Task type{' '}
-            <Text className="font-semibold text-slate">(required)</Text>
-          </Text>
-          <View
-            accessibilityLabel="Task type"
-            accessibilityRole="radiogroup"
-            className="mt-2 flex-row flex-wrap gap-2"
-          >
-            {financialItemKinds.map((kind) => {
-              const selected = values.kind === kind;
-              return (
-                <Pressable
-                  accessibilityLabel={kindLabels[kind]}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: selected }}
-                  className={`min-h-11 justify-center rounded-xl border px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand ${
-                    selected
-                      ? 'border-brand bg-blue-50'
-                      : errors.kind
-                        ? 'border-risk bg-surface'
-                        : 'border-line bg-surface'
-                  }`}
-                  key={kind}
-                  onPress={() => updateValue('kind', kind)}
-                >
-                  <Text
-                    className={`font-extrabold ${selected ? 'text-brand' : 'text-ink'}`}
-                  >
-                    {kindLabels[kind]}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          {errors.kind && (
-            <Text
-              accessibilityLiveRegion="polite"
-              className="mt-1.5 text-sm font-semibold text-risk"
-            >
-              {errors.kind}
-            </Text>
-          )}
-        </View>
-
-        <LabeledTextInput
-          autoCapitalize="sentences"
-          error={errors.title}
-          inputRef={titleRef}
-          label="Title"
-          onChangeText={(value) => updateValue('title', value)}
-          placeholder="Review annual renewal"
-          returnKeyType="next"
-          value={values.title}
-        />
-
-        <LabeledTextInput
-          autoCapitalize="words"
-          error={undefined}
-          label="Provider"
-          onChangeText={(value) => updateValue('provider', value)}
-          optional
-          placeholder="Streaming service"
-          returnKeyType="next"
-          value={values.provider}
-        />
-
-        <LabeledTextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          error={errors.deadline}
-          hint="Use YYYY-MM-DD, for example 2026-07-31. Calendar dates are stored without a time."
-          keyboardType={
-            Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'default'
-          }
-          label="Deadline"
-          onChangeText={(value) => updateValue('deadline', value)}
-          placeholder="YYYY-MM-DD"
-          returnKeyType="next"
-          value={values.deadline}
-        />
-
-        <View className="gap-7 md:flex-row">
-          {moneyFields.map((field) => {
-            const isValue = field === 'valueAvailable';
-            const isPrimary =
-              (values.kind === 'perk' && isValue) ||
-              (values.kind !== 'perk' && !isValue);
-            return (
-              <View className="flex-1" key={field}>
-                <LabeledTextInput
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  error={errors[field]}
-                  hint={
-                    isPrimary
-                      ? isValue
-                        ? 'For perks, this amount updates Available.'
-                        : 'For trials and subscriptions, this amount updates At Risk.'
-                      : 'Stored as optional context; dashboard metrics use the type-specific amount.'
-                  }
-                  inputMode="decimal"
-                  label={isValue ? 'Value available' : 'Charge at risk'}
-                  onChangeText={(value) => updateValue(field, value)}
-                  optional
-                  placeholder="0.00"
-                  value={values[field]}
-                />
-              </View>
-            );
-          })}
-        </View>
-
-        <View>
-          <Text className="text-sm font-extrabold text-ink">
-            Recurrence{' '}
-            <Text className="font-semibold text-slate">(optional)</Text>
-          </Text>
-          <View
-            accessibilityLabel="Recurrence"
-            accessibilityRole="radiogroup"
-            className="mt-2 flex-row flex-wrap gap-2"
-          >
-            {recurrenceOptions.map((recurrence) => {
-              const selected = values.recurrence === recurrence;
-              return (
-                <Pressable
-                  accessibilityLabel={recurrenceLabels[recurrence]}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: selected }}
-                  className={`min-h-11 justify-center rounded-xl border px-3 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand ${
-                    selected
-                      ? 'border-brand bg-blue-50'
-                      : 'border-line bg-surface'
-                  }`}
-                  key={recurrence}
-                  onPress={() => updateValue('recurrence', recurrence)}
-                >
-                  <Text
-                    className={`text-sm font-extrabold ${selected ? 'text-brand' : 'text-ink'}`}
-                  >
-                    {recurrenceLabels[recurrence]}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <LabeledTextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          error={errors.actionUrl}
-          hint="Must begin with https://. Clawback will only open it after you choose to do so."
-          keyboardType="url"
-          label="Action URL"
-          onChangeText={(value) => updateValue('actionUrl', value)}
-          optional
-          placeholder="https://example.com/account"
-          returnKeyType="done"
-          value={values.actionUrl}
+      <View className="mt-7">
+        <FinancialItemFields
+          errors={errors}
+          onChange={updateEditorValue}
+          titleRef={titleRef}
+          values={values}
         />
       </View>
 

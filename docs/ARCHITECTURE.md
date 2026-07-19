@@ -62,7 +62,6 @@ app/
     index.tsx
     manual.tsx
     email.tsx
-    review.tsx
   item/
     [id].tsx
 
@@ -129,6 +128,12 @@ supabase/
 docs/
 tests/
 ```
+
+The pasted-email input, extraction lifecycle, candidate edits, warnings, and
+errors remain local to `app/add/email.tsx` and its route-local workflow hook.
+The route never places raw email or extracted fields in URL parameters,
+navigation history, application-wide provider state, or persistent storage.
+Only an explicitly reviewed financial item enters `FinancialItemsProvider`.
 
 The actual structure may be adjusted as implementation reveals better boundaries. Avoid empty folders and unnecessary indirection.
 

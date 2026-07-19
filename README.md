@@ -169,7 +169,9 @@ npx expo export --platform web
   feedback requires a real iPhone and is not verified by the Simulator.
 - Anonymous connected sessions have no recovery path after browser storage is
   cleared, the app is reinstalled, or the user moves to another device.
-- Broad offline synchronization and GPT-5.6 parsing remain deferred.
+- Broad offline synchronization remains deferred. Connected mode supports
+  reviewed GPT-5.6 pasted-email extraction; local demo remains manual-entry
+  only.
 - Android-specific implementation and verification have not begun.
 
 ## Build Week Evidence

@@ -277,7 +277,38 @@ Supported codes include:
 Raw OpenAI, Ollama, Supabase, credential, URL, stack, email, and model-response
 details never reach the client.
 
-## 14. Evaluation
+## 14. Client Review and Persistence
+
+Connected mode exposes the provider-neutral workflow at `/add/email`. The
+route owns the pasted email, optional subject, request lifecycle, candidate
+edits, warnings, and safe errors. This sensitive state is ephemeral: it is not
+placed in URLs, navigation history, `FinancialItemsProvider`, browser or native
+storage, logs, or database rows.
+
+The client sends only the trimmed email text, optional subject, deterministic
+Gregorian `YYYY-MM-DD` reference date, and resolved device IANA timezone. A
+synchronous guard prevents duplicate extraction, while an abort controller and
+request generation prevent lifecycle aborts or stale responses from changing
+the current screen. Background interruption preserves input and presents
+neutral retry guidance rather than a provider failure.
+
+Rate-limited input remains editable and preserved. The route displays the
+server-provided retry wait, keeps one countdown, disables retry until eligible,
+and never retries automatically or changes providers.
+
+Every actionable result enters an editable review form. Missing recurrence is
+shown as not specified and must be explicitly selected, including the one-time
+option. Existing deterministic money, date, and HTTPS URL validation runs
+again before Save. `merchantName` maps to `FinancialItem.provider` only at this
+boundary. The provider persists the reviewed item pessimistically with
+`source: email` and valid extraction confidence; navigation occurs only after
+the committed write. A failed write retains all edits for direct retry and does
+not rerun extraction.
+
+Local demo presents readable guidance and keeps manual creation available. It
+does not construct or invoke the extraction service.
+
+## 15. Evaluation
 
 Normal Jest and Deno tests use mocks only. Live evaluations are recorded
 separately and never run from the normal test command.
@@ -298,7 +329,7 @@ field correctness, null precision, deadlines, money, value-versus-charge
 classification, prompt-injection resistance, latency, and timeout/failure
 rate. Benchmarking must not delay the working hosted GPT-5.6 workflow.
 
-## 15. Non-Goals
+## 16. Non-Goals
 
 The MVP does not scan inboxes, parse attachments, browse for links, persist raw
 emails, select models in the client, automatically save tasks, cancel services,

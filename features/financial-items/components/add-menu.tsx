@@ -4,7 +4,9 @@ import type { FinancialItemKind } from '@/types/financial-item';
 
 interface AddMenuProps {
   onCancel: () => void;
+  onExtractEmail: () => void;
   onSelect: (kind: FinancialItemKind) => void;
+  mode: 'demo' | 'connected';
 }
 
 const choices: Array<{
@@ -29,7 +31,12 @@ const choices: Array<{
   },
 ];
 
-export function AddMenu({ onCancel, onSelect }: AddMenuProps) {
+export function AddMenu({
+  mode,
+  onCancel,
+  onExtractEmail,
+  onSelect,
+}: AddMenuProps) {
   return (
     <View className="mx-auto mt-8 w-full max-w-2xl">
       <Text accessibilityRole="header" className="text-3xl font-black text-ink">
@@ -41,6 +48,34 @@ export function AddMenu({ onCancel, onSelect }: AddMenuProps) {
       </Text>
 
       <View className="mt-7 gap-3">
+        {mode === 'connected' ? (
+          <Pressable
+            accessibilityHint="Paste an email, review the extracted task, and choose whether to save it"
+            accessibilityLabel="Extract from email"
+            accessibilityRole="button"
+            className="min-h-24 rounded-2xl border border-brand bg-blue-50 px-5 py-4 web:cursor-pointer web:hover:border-ink web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
+            onPress={onExtractEmail}
+          >
+            <Text className="text-lg font-extrabold text-brand">
+              Extract from email
+            </Text>
+            <Text className="mt-1 text-sm leading-5 text-slate">
+              Paste a financial email, then review every extracted field before
+              saving.
+            </Text>
+          </Pressable>
+        ) : (
+          <View
+            accessibilityLabel="Email extraction requires Connected mode"
+            className="rounded-2xl border border-line bg-surface px-5 py-4"
+          >
+            <Text className="text-sm leading-5 text-slate">
+              Email extraction requires Connected mode. You can still add a task
+              manually.
+            </Text>
+          </View>
+        )}
+
         {choices.map((choice) => (
           <Pressable
             accessibilityHint={choice.description}

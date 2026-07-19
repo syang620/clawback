@@ -7,14 +7,47 @@ describe('Milestone 03 Add menu', () => {
   it('offers exactly the three manual task types and supports cancellation', () => {
     const onCancel = jest.fn();
     const onSelect = jest.fn();
-    render(<AddMenu onCancel={onCancel} onSelect={onSelect} />);
+    render(
+      <AddMenu
+        mode="demo"
+        onCancel={onCancel}
+        onExtractEmail={jest.fn()}
+        onSelect={onSelect}
+      />,
+    );
 
     fireEvent.press(screen.getByRole('button', { name: 'Add a perk' }));
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(onSelect).toHaveBeenCalledWith('perk');
     expect(onCancel).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText(/parse email/i)).toBeNull();
+    expect(
+      screen.getByText(
+        'Email extraction requires Connected mode. You can still add a task manually.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('offers email extraction first in Connected mode and keeps manual choices', () => {
+    const onExtractEmail = jest.fn();
+    render(
+      <AddMenu
+        mode="connected"
+        onCancel={jest.fn()}
+        onExtractEmail={onExtractEmail}
+        onSelect={jest.fn()}
+      />,
+    );
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[0].props.accessibilityLabel).toBe('Extract from email');
+    fireEvent.press(buttons[0]);
+    expect(onExtractEmail).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Add a trial' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add a perk' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Add a subscription' }),
+    ).toBeTruthy();
   });
 });
 
