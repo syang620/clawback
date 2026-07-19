@@ -4,20 +4,32 @@ import { AppHeader } from '@/components/app-header';
 import { MetricCard } from '@/components/metric-card';
 import { Screen } from '@/components/screen';
 import { FinancialItemList } from '@/features/financial-items/components/financial-item-list';
+import type {
+  FinancialItemsMutationError,
+  FinancialItemPendingOperation,
+} from '@/features/financial-items/hooks/use-financial-items';
 import { calculateDashboardMetrics } from '@/features/financial-items/logic/dashboard';
 import type { FinancialItem } from '@/types/financial-item';
 
 interface DashboardProps {
   isRouteFocused?: boolean;
   items: FinancialItem[];
-  onComplete: (id: string) => boolean;
+  mutationErrors?: FinancialItemsMutationError[];
+  onComplete: (id: string) => Promise<boolean>;
+  onDismissError?: (errorId: string) => void;
+  pendingItemOperations?: Readonly<
+    Record<string, FinancialItemPendingOperation>
+  >;
   referenceDate: Date;
 }
 
 export function Dashboard({
   isRouteFocused = true,
   items,
+  mutationErrors,
   onComplete,
+  onDismissError,
+  pendingItemOperations,
   referenceDate,
 }: DashboardProps) {
   const metrics = calculateDashboardMetrics(items);
@@ -60,7 +72,10 @@ export function Dashboard({
       <FinancialItemList
         isRouteFocused={isRouteFocused}
         items={items}
+        mutationErrors={mutationErrors}
         onComplete={onComplete}
+        onDismissError={onDismissError}
+        pendingItemOperations={pendingItemOperations}
         referenceDate={referenceDate}
       />
     </Screen>

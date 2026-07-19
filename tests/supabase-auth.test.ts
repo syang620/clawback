@@ -46,6 +46,24 @@ describe('Checkpoint 4A anonymous session lifecycle', () => {
     expect(auth.signInAnonymously).toHaveBeenCalledTimes(1);
   });
 
+  it('reuses the session created by a prior retry instead of creating another user', async () => {
+    const auth = {
+      getSession: jest
+        .fn()
+        .mockResolvedValueOnce({ data: { session: null }, error: null })
+        .mockResolvedValueOnce({ data: { session }, error: null }),
+      signInAnonymously: jest.fn().mockResolvedValue({
+        data: { session },
+        error: null,
+      }),
+    };
+    const client = clientWithAuth(auth);
+
+    await expect(getOrCreateAnonymousSession(client)).resolves.toBe(session);
+    await expect(getOrCreateAnonymousSession(client)).resolves.toBe(session);
+    expect(auth.signInAnonymously).toHaveBeenCalledTimes(1);
+  });
+
   it('normalizes restore and anonymous sign-in failures', async () => {
     const restoreFailure = clientWithAuth({
       getSession: jest.fn().mockResolvedValue({

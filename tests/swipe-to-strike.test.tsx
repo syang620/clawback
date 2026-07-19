@@ -41,7 +41,7 @@ jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
 });
 
 function renderSwipe(
-  onComplete: (id: string) => boolean,
+  onComplete: (id: string) => Promise<boolean>,
   isRouteFocused = true,
 ) {
   return render(
@@ -86,7 +86,7 @@ describe('Checkpoint 2B swipe wrapper', () => {
   });
 
   it('keeps the button functional without mounting swipe before measurement', () => {
-    const onComplete = jest.fn(() => true);
+    const onComplete = jest.fn().mockResolvedValue(true);
     renderSwipe(onComplete);
 
     expect(screen.queryByTestId('mock-swipeable')).toBeNull();
@@ -95,8 +95,8 @@ describe('Checkpoint 2B swipe wrapper', () => {
     expect(onComplete).toHaveBeenCalledWith('task-1');
   });
 
-  it('uses 60% of positive measured width and guards repeat callbacks', () => {
-    const onComplete = jest.fn(() => true);
+  it('uses 60% of positive measured width and guards repeat callbacks', async () => {
+    const onComplete = jest.fn().mockResolvedValue(true);
     renderSwipe(onComplete);
     measureCard(300);
 
@@ -104,17 +104,18 @@ describe('Checkpoint 2B swipe wrapper', () => {
     expect(mockSwipeableProps?.leftThreshold).toBe(180);
     expect(mockSwipeableProps?.overshootLeft).toBe(false);
 
-    act(() => {
-      (mockSwipeableProps?.onSwipeableOpen as () => boolean)();
-      (mockSwipeableProps?.onSwipeableOpen as () => boolean)();
+    await act(async () => {
+      (mockSwipeableProps?.onSwipeableOpen as () => void)();
+      (mockSwipeableProps?.onSwipeableOpen as () => void)();
+      await Promise.resolve();
     });
 
-    expect(mockSwipeableReset).toHaveBeenCalledTimes(1);
+    expect(mockSwipeableReset).toHaveBeenCalledTimes(2);
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
   it('resets local swipe state before button completion', () => {
-    const onComplete = jest.fn(() => true);
+    const onComplete = jest.fn().mockResolvedValue(true);
     renderSwipe(onComplete);
     measureCard(320);
 
@@ -126,8 +127,31 @@ describe('Checkpoint 2B swipe wrapper', () => {
     );
   });
 
+  it('resets local state after an asynchronous completion failure', async () => {
+    let rejectCompletion: (error: Error) => void = () => undefined;
+    const onComplete = jest.fn(
+      () =>
+        new Promise<boolean>((_resolve, reject) => {
+          rejectCompletion = reject;
+        }),
+    );
+    renderSwipe(onComplete);
+    measureCard(320);
+
+    act(() => {
+      (mockSwipeableProps?.onSwipeableOpen as () => void)();
+    });
+    expect(mockSwipeableReset).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      rejectCompletion(new Error('write failed'));
+      await Promise.resolve();
+    });
+    expect(mockSwipeableReset).toHaveBeenCalledTimes(2);
+  });
+
   it('resets only local gesture state on route blur and unmount', () => {
-    const onComplete = jest.fn(() => true);
+    const onComplete = jest.fn().mockResolvedValue(true);
     const view = renderSwipe(onComplete);
     measureCard(320);
 
@@ -153,7 +177,7 @@ describe('Checkpoint 2B swipe wrapper', () => {
   });
 
   it('omits swipe on web and when reduced motion is enabled', () => {
-    const webCompletion = jest.fn(() => true);
+    const webCompletion = jest.fn().mockResolvedValue(true);
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
       value: 'web',
@@ -167,7 +191,7 @@ describe('Checkpoint 2B swipe wrapper', () => {
 
     Object.defineProperty(Platform, 'OS', { configurable: true, value: 'ios' });
     mockReduceMotion = true;
-    const reducedCompletion = jest.fn(() => true);
+    const reducedCompletion = jest.fn().mockResolvedValue(true);
     renderSwipe(reducedCompletion);
     measureCard(320);
     expect(screen.queryByTestId('mock-swipeable')).toBeNull();

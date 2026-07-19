@@ -25,10 +25,11 @@ import Animated, {
 
 import { useReducedMotionPreference } from '@/hooks/use-reduced-motion-preference';
 
-export type ItemCompletionHandler = (id: string) => boolean;
+export type ItemCompletionHandler = (id: string) => Promise<boolean>;
 
 interface SwipeToStrikeProps {
   children: (onComplete: ItemCompletionHandler) => ReactNode;
+  disabled?: boolean;
   isRouteFocused?: boolean;
   itemId: string;
   onComplete: ItemCompletionHandler;
@@ -73,6 +74,7 @@ function StrikeAction({ progress, width }: StrikeActionProps) {
 
 export function SwipeToStrike({
   children,
+  disabled = false,
   isRouteFocused = true,
   itemId,
   onComplete,
@@ -81,25 +83,33 @@ export function SwipeToStrike({
   const reduceMotion = useReducedMotionPreference();
   const swipeableRef = useRef<SwipeableMethods>(null);
   const completionRequestedRef = useRef(false);
-  const canSwipe = Platform.OS !== 'web' && !reduceMotion && cardWidth > 0;
+  const canSwipe =
+    Platform.OS !== 'web' && !reduceMotion && !disabled && cardWidth > 0;
 
   const resetLocalGestureState = useCallback(() => {
     swipeableRef.current?.reset();
     completionRequestedRef.current = false;
   }, []);
 
-  const requestCompletion = useCallback(() => {
+  const requestCompletion = useCallback(async () => {
+    if (disabled) return false;
     if (completionRequestedRef.current) return false;
 
     completionRequestedRef.current = true;
     swipeableRef.current?.reset();
-    const didComplete = onComplete(itemId);
-    if (!didComplete) completionRequestedRef.current = false;
-    return didComplete;
-  }, [itemId, onComplete]);
+    try {
+      return await onComplete(itemId);
+    } catch {
+      return false;
+    } finally {
+      swipeableRef.current?.reset();
+      completionRequestedRef.current = false;
+    }
+  }, [disabled, itemId, onComplete]);
 
   const completeFromCard = useCallback<ItemCompletionHandler>(
-    (requestedId) => (requestedId === itemId ? requestCompletion() : false),
+    async (requestedId) =>
+      requestedId === itemId ? requestCompletion() : false,
     [itemId, requestCompletion],
   );
 
@@ -129,7 +139,9 @@ export function SwipeToStrike({
           containerStyle={styles.swipeableContainer}
           dragOffsetFromLeftEdge={12}
           leftThreshold={cardWidth * 0.6}
-          onSwipeableOpen={requestCompletion}
+          onSwipeableOpen={() => {
+            void requestCompletion();
+          }}
           overshootLeft={false}
           renderLeftActions={(progress) => (
             <StrikeAction progress={progress} width={cardWidth} />

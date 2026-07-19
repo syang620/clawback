@@ -63,8 +63,9 @@ The existing `.venv/` is ignored and is not required to run the Expo app.
 npm install
 ```
 
-The current application uses local sample and manually entered session data and
-does not require environment variables.
+The application runs without environment variables in local demo mode. When a
+Supabase development project is configured, connected-mode tasks persist across
+refreshes and app relaunches.
 
 ### Run on web
 
@@ -109,9 +110,15 @@ The publishable key is intended for client use, but authorization still depends
 on Row Level Security. Never place a service-role key, database password, or
 other private secret in an `EXPO_PUBLIC_` variable.
 
-Checkpoint 4A includes the typed client, repositories, migration, and anonymous
-session foundation. Application/provider integration is intentionally deferred
-to Checkpoint 4B, so the current UI still runs in local demo mode.
+These values are read when Expo creates the application bundle. Restart and
+rebundle the app after adding, removing, or changing them. Both values absent
+selects local demo mode; partial, malformed, or obviously secret-key
+configuration shows a configuration error and never silently falls back.
+
+Connected mode creates or restores a persisted anonymous Supabase session.
+There is no account recovery in this milestone: clearing browser storage,
+reinstalling the app, or moving to another device can make that anonymous
+user's connected data inaccessible.
 
 ### Local Supabase checks
 
@@ -152,17 +159,17 @@ npx expo export --platform web
 
 ## Current limitations
 
-- Sample and manually created data are local to the current session and reset
-  when the app reloads.
+- Local demo data, including manually created items, resets when the app reloads
+  or relaunches. Connected-mode data persists in Supabase.
 - Demo dates are generated and displayed as UTC calendar dates for deterministic
   testing. User-local timezone handling is deferred.
 - Manual entry accepts USD amounts with a period decimal separator and uses a
   dependency-free `YYYY-MM-DD` calendar-date field.
 - Swipe-to-strike, completion, and Undo are implemented. Physical tactile
   feedback requires a real iPhone and is not verified by the Simulator.
-- Supabase application integration and GPT-5.6 parsing remain deferred. The
-  Supabase client, migration, RLS, and repositories exist but are not connected
-  to the provider until Checkpoint 4B.
+- Anonymous connected sessions have no recovery path after browser storage is
+  cleared, the app is reinstalled, or the user moves to another device.
+- Broad offline synchronization and GPT-5.6 parsing remain deferred.
 - Android-specific implementation and verification have not begun.
 
 ## Build Week Evidence

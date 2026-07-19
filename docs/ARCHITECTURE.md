@@ -260,9 +260,16 @@ deleteItem(id: string): Promise<boolean>
 ensureInitialSeed(referenceDate?: Date): Promise<void>
 ```
 
-The UI should consume the service interface rather than embedding Supabase
-queries in components. The existing provider remains the application state
-authority when this repository is integrated in Checkpoint 4B.
+The UI consumes this service interface rather than embedding Supabase queries
+in components. The provider is the sole visible state authority: it selects the
+repository during initialization, exposes explicit loading and failure phases,
+and applies only repository-confirmed mutations to visible state.
+
+Create, complete, and restore operations are pessimistic. Provider-owned
+synchronous guards prevent duplicate pending writes, and normalized mutation
+errors expose only the operation, optional item ID, user-safe message, and
+dismiss behavior. Initialization and mutation generation tokens prevent stale
+responses from overwriting newer successful state.
 
 ### `emailParserService`
 

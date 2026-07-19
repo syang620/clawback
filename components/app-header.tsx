@@ -1,6 +1,8 @@
 import { type Href, Link, usePathname } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { useFinancialItems } from '@/features/financial-items/hooks/use-financial-items';
+
 interface NavigationLinkProps {
   href: '/' | '/activity' | '/add';
   label: string;
@@ -31,6 +33,8 @@ function NavigationLink({ href, label }: NavigationLinkProps) {
 }
 
 export function AppHeader() {
+  const { mode } = useFinancialItems();
+
   return (
     <View className="gap-4">
       <View className="flex-row items-center justify-between gap-4">
@@ -43,7 +47,9 @@ export function AppHeader() {
           </Text>
         </View>
         <View className="rounded-full border border-brand/20 bg-blue-50 px-3 py-2">
-          <Text className="text-xs font-bold text-brand">Sample data</Text>
+          <Text className="text-xs font-bold text-brand">
+            {mode === 'connected' ? 'Connected' : 'Local demo'}
+          </Text>
         </View>
       </View>
 

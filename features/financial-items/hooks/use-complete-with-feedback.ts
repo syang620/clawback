@@ -3,19 +3,19 @@ import { useCallback } from 'react';
 import { useFinancialItems } from '@/features/financial-items/hooks/use-financial-items';
 import { triggerCompletionHaptic } from '@/lib/haptics';
 
-export type CompletionRequest = () => boolean;
+export type CompletionRequest = () => Promise<boolean>;
 export type CompletionFeedbackRequest = () => Promise<boolean>;
 
-export function completeWithFeedback(
+export async function completeWithFeedback(
   complete: CompletionRequest,
   requestFeedback: CompletionFeedbackRequest = triggerCompletionHaptic,
-): boolean {
-  const didComplete = complete();
+): Promise<boolean> {
+  const didComplete = await complete();
   if (didComplete) void requestFeedback();
   return didComplete;
 }
 
-export function useCompleteWithFeedback(): (id: string) => boolean {
+export function useCompleteWithFeedback(): (id: string) => Promise<boolean> {
   const { completeItem } = useFinancialItems();
 
   return useCallback(

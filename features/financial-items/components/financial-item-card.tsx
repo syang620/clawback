@@ -1,6 +1,7 @@
 import { type Href, Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { MutationError } from '@/components/mutation-error';
 import { UrgencyBadge } from '@/features/financial-items/components/urgency-badge';
 import { getDeadlinePresentation } from '@/features/financial-items/logic/urgency';
 import { formatAbsoluteDate } from '@/lib/dates';
@@ -10,7 +11,10 @@ import type { FinancialItem } from '@/types/financial-item';
 interface FinancialItemCardProps {
   item: FinancialItem;
   isNextDue: boolean;
-  onComplete: (id: string) => boolean;
+  isCompleting?: boolean;
+  mutationError?: { id: string; message: string };
+  onComplete: (id: string) => Promise<boolean>;
+  onDismissError?: (errorId: string) => void;
   referenceDate: Date;
 }
 
@@ -28,7 +32,10 @@ function formatRecurrence(item: FinancialItem): string {
 export function FinancialItemCard({
   item,
   isNextDue,
+  isCompleting = false,
+  mutationError,
   onComplete,
+  onDismissError,
   referenceDate,
 }: FinancialItemCardProps) {
   const isPerk = item.kind === 'perk';
@@ -113,12 +120,24 @@ export function FinancialItemCard({
           accessibilityHint="Moves this task to Activity and updates dashboard totals"
           accessibilityLabel={`Complete ${item.title}`}
           accessibilityRole="button"
+          accessibilityState={{ busy: isCompleting, disabled: isCompleting }}
           className="min-h-11 justify-center rounded-xl bg-ink px-5 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
-          onPress={() => onComplete(item.id)}
+          disabled={isCompleting}
+          onPress={() => {
+            void onComplete(item.id);
+          }}
         >
-          <Text className="font-extrabold text-white">Complete</Text>
+          <Text className="font-extrabold text-white">
+            {isCompleting ? 'Completing…' : 'Complete'}
+          </Text>
         </Pressable>
       </View>
+      {mutationError && onDismissError && (
+        <MutationError
+          message={mutationError.message}
+          onDismiss={() => onDismissError(mutationError.id)}
+        />
+      )}
     </View>
   );
 }

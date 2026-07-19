@@ -9,9 +9,13 @@ import { isFinancialItemKind } from '@/features/financial-items/logic/manual-ent
 export default function ManualFinancialItemRoute() {
   const { kind } = useLocalSearchParams<{ kind?: string | string[] }>();
   const router = useRouter();
-  const { createItem } = useFinancialItems();
+  const { createItem, dismissMutationError, mutationErrors } =
+    useFinancialItems();
   const kindValue = Array.isArray(kind) ? kind[0] : kind;
   const initialKind = isFinancialItemKind(kindValue) ? kindValue : null;
+  const createError = mutationErrors.find(
+    (error) => error.operation === 'create',
+  );
 
   return (
     <Screen keyboardAware>
@@ -19,10 +23,16 @@ export default function ManualFinancialItemRoute() {
       <ManualFinancialItemForm
         initialKind={initialKind}
         onCancel={() => router.replace('/')}
-        onSave={(input) => {
-          createItem(input);
+        onDismissSaveError={
+          createError ? () => dismissMutationError(createError.id) : undefined
+        }
+        onSave={async (input) => {
+          const createdItem = await createItem(input);
+          if (!createdItem) return false;
           router.replace('/');
+          return true;
         }}
+        saveError={createError}
       />
     </Screen>
   );

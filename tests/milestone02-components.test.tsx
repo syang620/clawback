@@ -11,6 +11,10 @@ jest.mock('expo-router', () => ({
   usePathname: () => '/activity',
 }));
 
+jest.mock('@/features/financial-items/hooks/use-financial-items', () => ({
+  useFinancialItems: () => ({ mode: 'demo' }),
+}));
+
 describe('Milestone 02 route components', () => {
   const referenceDate = new Date('2026-07-16T00:00:00.000Z');
   const items = createDemoItems(referenceDate);
@@ -34,7 +38,7 @@ describe('Milestone 02 route components', () => {
   });
 
   it('shows an explicit safe action and completion control on details', () => {
-    const onComplete = jest.fn();
+    const onComplete = jest.fn().mockResolvedValue(true);
     const openUrl = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValueOnce(undefined);

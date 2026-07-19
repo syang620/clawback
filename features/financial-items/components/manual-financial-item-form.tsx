@@ -26,7 +26,9 @@ import type {
 interface ManualFinancialItemFormProps {
   initialKind?: FinancialItemKind | null;
   onCancel: () => void;
-  onSave: (input: CreateFinancialItemInput) => void;
+  onDismissSaveError?: () => void;
+  onSave: (input: CreateFinancialItemInput) => Promise<boolean>;
+  saveError?: { message: string } | null;
 }
 
 interface LabeledTextInputProps extends TextInputProps {
@@ -92,13 +94,16 @@ function LabeledTextInput({
 export function ManualFinancialItemForm({
   initialKind = null,
   onCancel,
+  onDismissSaveError,
   onSave,
+  saveError = null,
 }: ManualFinancialItemFormProps) {
   const [values, setValues] = useState<ManualFinancialItemFormValues>(() =>
     createEmptyManualFinancialItemForm(initialKind),
   );
   const [errors, setErrors] = useState<ManualFinancialItemErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const titleRef = useRef<TextInput>(null);
 
@@ -122,9 +127,10 @@ export function ManualFinancialItemForm({
       return next;
     });
     setFormError(null);
+    onDismissSaveError?.();
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (isSubmittingRef.current) return;
 
     const result = validateManualFinancialItem(values);
@@ -136,13 +142,20 @@ export function ManualFinancialItemForm({
     }
 
     isSubmittingRef.current = true;
+    setIsSubmitting(true);
+    setFormError(null);
+    onDismissSaveError?.();
     try {
-      onSave(result.input);
+      await onSave(result.input);
     } catch {
-      isSubmittingRef.current = false;
       setFormError('We could not save this task. Your entries are still here.');
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
+
+  const displayedFormError = formError ?? saveError?.message ?? null;
 
   return (
     <View className="mx-auto mt-8 w-full max-w-2xl">
@@ -150,16 +163,16 @@ export function ManualFinancialItemForm({
         Create a task
       </Text>
       <Text className="mt-2 text-base leading-6 text-slate">
-        Saving creates a reminder in this local session. Clawback does not
-        cancel, redeem, charge, or perform a financial action.
+        Saving creates an active reminder. Clawback does not cancel, redeem,
+        charge, or perform a financial action.
       </Text>
 
-      {formError && (
+      {displayedFormError && (
         <View
           accessibilityLiveRegion="assertive"
           className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3"
         >
-          <Text className="font-semibold text-risk">{formError}</Text>
+          <Text className="font-semibold text-risk">{displayedFormError}</Text>
         </View>
       )}
 
@@ -332,18 +345,26 @@ export function ManualFinancialItemForm({
       <View className="mt-8 flex-row flex-wrap justify-end gap-3">
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ disabled: isSubmitting }}
           className="min-h-12 justify-center rounded-xl border border-line bg-surface px-5 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
+          disabled={isSubmitting}
           onPress={onCancel}
         >
           <Text className="font-extrabold text-ink">Cancel</Text>
         </Pressable>
         <Pressable
-          accessibilityHint="Creates an active reminder in this local session"
+          accessibilityHint="Creates an active financial reminder"
           accessibilityRole="button"
+          accessibilityState={{ busy: isSubmitting, disabled: isSubmitting }}
           className="min-h-12 justify-center rounded-xl bg-ink px-6 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
-          onPress={submit}
+          disabled={isSubmitting}
+          onPress={() => {
+            void submit();
+          }}
         >
-          <Text className="font-extrabold text-white">Save task</Text>
+          <Text className="font-extrabold text-white">
+            {isSubmitting ? 'Saving…' : 'Save task'}
+          </Text>
         </Pressable>
       </View>
     </View>

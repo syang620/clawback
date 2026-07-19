@@ -558,17 +558,125 @@ changing the accepted provider or user interface.
 
 ### Remaining Limitations
 
-- Checkpoint 4B has not started. The current provider/UI still uses local seeded
-  and session-only data.
-- Connected-mode web refresh and iOS relaunch persistence are not testable until
-  the provider is integrated.
-- The migration must be applied to the hosted development project before hosted
-  RLS verification can run.
+- At the Checkpoint 4A handoff, provider integration and connected-mode
+  persistence verification remained deferred to Checkpoint 4B.
+- The hosted migration and RLS checks were completed during the Checkpoint 4B
+  preflight and are recorded in the next entry.
 - Anonymous identities cannot be recovered after local auth storage is removed.
 
 ### Commit
 
-Not created. No commit, tag, or push was performed.
+Committed and pushed as `2061f13` with message
+`chore: add Supabase persistence foundation`. No Checkpoint 4A tag was created.
+
+### Codex Session
+
+Primary session identifier pending `/feedback` capture.
+
+---
+
+## 2026-07-18 — Milestone 04 Checkpoint 4B Application Integration
+
+### Objective
+
+Integrate the accepted persistence repositories into the provider while
+preserving demo mode and all accepted creation, completion, swipe, Activity,
+details, and Undo behavior.
+
+### Codex Contribution
+
+- Added bundle-time demo/connected repository selection, anonymous-session reuse,
+  one-time seed initialization, and explicit loading and recoverable failure
+  phases.
+- Kept the provider as the sole visible state authority and applied create,
+  complete, and restore changes only after repository confirmation.
+- Added synchronous provider-owned duplicate guards, normalized user-safe
+  mutation errors, and initialization/mutation generation guards for stale
+  responses.
+- Preserved manual-form values after save failure, delayed haptics and Undo until
+  successful completion persistence, and made failed restore retryable without
+  falsely restoring the item.
+- Added truthful `Local demo`/`Connected` labels and focused integration tests.
+
+### Verification
+
+- `npx expo install --check`: passed
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 22 suites and 116 tests
+- `npx expo export --platform web`: passed
+- `git diff --check`: passed
+- `npx supabase test db`: passed, 37 pgTAP checks
+- `npx supabase db lint --local --schema public --fail-on warning`: passed
+- Required unscoped `npx supabase db lint --local --fail-on warning`: passed on
+  the final clean database rerun. An earlier image-update run reported
+  third-party extension findings; public-schema lint remained clean
+- Hosted migration/link check: passed; local and remote migration versions match
+  and the linked `public` schema diff is empty
+- Hosted anonymous-auth, distinct two-user RLS isolation, unauthenticated
+  read/write denial, one-time seed, no-reseed-after-mutation, and noon-UTC date
+  round trip: passed
+- Connected iOS launch and relaunch: passed; the loading state and `Connected`
+  dashboard rendered without Metro errors
+- Connected web anonymous-session, create, date/amount round-trip, completion,
+  Activity, metrics, Undo, no-empty-flash, and mode-label review: passed
+- Connected iOS create, swipe completion, Undo, relaunch persistence, and runtime
+  error review: passed
+- Environment-mode review for local demo, reset-on-reload, partial configuration,
+  and no connected-to-demo fallback: passed
+- Live connectivity-failure review for save, completion, Undo, retry, haptic
+  suppression, safe error details, and no connected-to-demo fallback: passed
+
+### Manual Review
+
+- Connected web persistence: accepted. Anonymous session, manually created item,
+  amount, calendar date, button completion, Activity, metrics, and Undo all
+  persisted across refresh. No false empty-state flash appeared, and the mode
+  indicator displayed `Connected`.
+- Connected iOS persistence: accepted. Created items, swipe completion, and Undo
+  persisted across relaunch, with no Metro or navigation errors.
+- Expo Haptics completed without a Simulator runtime error. Physical tactile
+  feedback remains unverified without a real iPhone.
+- Local demo and partial-configuration modes: accepted. Demo mode appeared with
+  both variables absent, reset after reload as documented, partial configuration
+  showed an error, and connected failures did not silently select demo mode.
+- Failed manual save retained all form values, did not navigate, did not create a
+  false item, and created exactly one item after reconnection: passed.
+- Failed completion left the item active, metrics unchanged, Activity unchanged,
+  and requested no haptics; reconnection completed exactly once: passed.
+- Failed Undo retained the completed item and retry action, received a fresh
+  window near timer expiry, restored exactly once after reconnection, and the
+  restored state persisted after refresh: passed.
+- User-facing errors exposed no raw Supabase, Postgres, credential, URL, or
+  stack-trace details, and connected failures never switched to `Local demo`:
+  passed.
+- Milestone 04 and both Checkpoints 4A and 4B are accepted.
+
+### Problems and Resolutions
+
+- The initial automated browser session had no available browser instance. The
+  team subsequently completed the connected web, iOS, and environment-mode
+  manual reviews recorded above.
+- The local Supabase CLI pulled a newer PostgREST image. One unscoped lint run
+  reported extension-owned pgTAP findings; application-owned `public` schema
+  lint stayed clean, and a final clean reset made unscoped lint pass. All 37
+  database tests passed throughout.
+- Connected-mode errors never trigger demo fallback and raw backend messages are
+  not exposed to users.
+
+### Remaining Limitations
+
+- Demo/partial-configuration checks require changing bundle-time variables and
+  fully reloading or rebundling Expo; no runtime mode toggle exists.
+- Clearing browser storage, reinstalling the app, or moving devices can make an
+  anonymous connected user's data inaccessible.
+- Physical tactile haptics remain unverified without a real iPhone.
+- Broad offline synchronization remains out of scope.
+
+### Commit
+
+Not created. No Checkpoint 4B commit, tag, or push was performed.
 
 ### Codex Session
 

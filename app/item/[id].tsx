@@ -10,7 +10,12 @@ import { useFinancialItems } from '@/features/financial-items/hooks/use-financia
 export default function FinancialItemDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { getItem } = useFinancialItems();
+  const {
+    dismissMutationError,
+    getItem,
+    mutationErrors,
+    pendingItemOperations,
+  } = useFinancialItems();
   const completeItem = useCompleteWithFeedback();
   const item = typeof id === 'string' ? getItem(id) : null;
 
@@ -32,7 +37,13 @@ export default function FinancialItemDetailRoute() {
       {item ? (
         <FinancialItemDetail
           item={item}
+          isCompleting={pendingItemOperations[item.id] === 'complete'}
+          mutationError={mutationErrors.find(
+            (error) =>
+              error.operation === 'complete' && error.itemId === item.id,
+          )}
           onComplete={completeItem}
+          onDismissError={dismissMutationError}
           referenceDate={new Date()}
         />
       ) : (

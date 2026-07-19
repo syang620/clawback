@@ -24,7 +24,7 @@ describe('Milestone 03 manual-entry form', () => {
       <ManualFinancialItemForm
         initialKind="perk"
         onCancel={jest.fn()}
-        onSave={jest.fn()}
+        onSave={jest.fn().mockResolvedValue(true)}
       />,
     );
 
@@ -43,7 +43,7 @@ describe('Milestone 03 manual-entry form', () => {
   });
 
   it('preserves entered values and blocks save when fields are invalid', () => {
-    const onSave = jest.fn();
+    const onSave = jest.fn().mockResolvedValue(true);
     render(
       <ManualFinancialItemForm
         initialKind="trial"
@@ -82,9 +82,15 @@ describe('Milestone 03 manual-entry form', () => {
     ).toBeTruthy();
   });
 
-  it('submits a normalized item exactly once and supports Cancel separately', () => {
+  it('submits a normalized item exactly once and supports Cancel separately', async () => {
     const onCancel = jest.fn();
-    const onSave = jest.fn();
+    let resolveSave: (value: boolean) => void = () => undefined;
+    const onSave = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
     render(
       <ManualFinancialItemForm
         initialKind="perk"
@@ -114,7 +120,6 @@ describe('Milestone 03 manual-entry form', () => {
     const save = screen.getByRole('button', { name: 'Save task' });
     fireEvent.press(save);
     fireEvent.press(save);
-    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith({
@@ -127,6 +132,44 @@ describe('Milestone 03 manual-entry form', () => {
       recurrence: 'quarterly',
       actionUrl: 'https://example.com/account',
     });
+    expect(screen.getByText('Saving…')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Cancel' }).props.accessibilityState,
+    ).toMatchObject({ disabled: true });
+
+    resolveSave(true);
+    await screen.findByText('Save task');
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves values and shows a recoverable inline error after save failure', async () => {
+    const onSave = jest.fn().mockResolvedValue(false);
+    const view = render(
+      <ManualFinancialItemForm
+        initialKind="trial"
+        onCancel={jest.fn()}
+        onSave={onSave}
+        saveError={{ message: 'We could not save this task. Try again.' }}
+      />,
+    );
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Review annual renewal'),
+      'Keep this title',
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText('YYYY-MM-DD'),
+      '2026-08-01',
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Save task' }));
+    await screen.findByText('Save task');
+
+    expect(screen.getByDisplayValue('Keep this title')).toBeTruthy();
+    expect(screen.getByDisplayValue('2026-08-01')).toBeTruthy();
+    expect(
+      screen.getByText('We could not save this task. Try again.'),
+    ).toBeTruthy();
+    view.unmount();
   });
 });

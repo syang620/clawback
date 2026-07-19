@@ -16,9 +16,15 @@ jest.mock('@/features/financial-items/components/swipe-to-strike', () => ({
     children,
     onComplete,
   }: {
-    children: (completeItem: (id: string) => boolean) => React.ReactNode;
-    onComplete: (id: string) => boolean;
+    children: (
+      completeItem: (id: string) => Promise<boolean>,
+    ) => React.ReactNode;
+    onComplete: (id: string) => Promise<boolean>;
   }) => children(onComplete),
+}));
+
+jest.mock('@/features/financial-items/hooks/use-financial-items', () => ({
+  useFinancialItems: () => ({ mode: 'demo' }),
 }));
 
 describe('Milestone 01 components', () => {
@@ -26,7 +32,7 @@ describe('Milestone 01 components', () => {
     render(
       <Dashboard
         items={[]}
-        onComplete={jest.fn()}
+        onComplete={jest.fn().mockResolvedValue(true)}
         referenceDate={new Date('2026-07-16T00:00:00.000Z')}
       />,
     );
@@ -43,9 +49,7 @@ describe('Milestone 01 components', () => {
     loading.unmount();
 
     render(<ErrorState />);
-    expect(
-      screen.getByLabelText('Could not load financial tasks'),
-    ).toBeTruthy();
+    expect(screen.getByLabelText('Could not load tasks')).toBeTruthy();
   });
 
   it('renders a financial item with a text-based next-deadline signal', () => {
@@ -54,7 +58,7 @@ describe('Milestone 01 components', () => {
       <FinancialItemCard
         item={item}
         isNextDue
-        onComplete={jest.fn()}
+        onComplete={jest.fn().mockResolvedValue(true)}
         referenceDate={new Date('2026-07-16T00:00:00.000Z')}
       />,
     );
