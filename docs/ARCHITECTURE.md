@@ -290,13 +290,18 @@ Expected operation:
 parseFinancialEmail(input: {
   emailText: string;
   subject?: string;
-  emailSentDate?: string;
   userTimeZone: string;
   referenceDate: string;
 }): Promise<FinancialEmailExtraction>
 ```
 
-This service calls the Supabase Edge Function.
+This service calls the Supabase Edge Function with the current authenticated
+client. It strictly validates the provider-neutral response and maps server
+codes to user-safe client errors. `rate_limited` includes a bounded
+`retryAfterSeconds`; lifecycle aborts have a separate type and are not rendered
+as provider failures. The locale-independent `referenceDate` is assembled from
+Gregorian, Latin-digit `Intl.DateTimeFormat.formatToParts()` output in the
+resolved device IANA timezone.
 
 ## 10. AI Edge Function Contract
 
@@ -387,10 +392,13 @@ on financial_items
 for select
 using (auth.uid() = user_id);
 
-create policy "Users can create own financial items"
+create policy "Users can create own manual or email financial items"
 on financial_items
 for insert
-with check (auth.uid() = user_id);
+with check (
+  auth.uid() = user_id
+  and source in ('manual', 'email')
+);
 
 create policy "Users can update own financial items"
 on financial_items
@@ -405,6 +413,20 @@ using (auth.uid() = user_id);
 ```
 
 Exact SQL should be implemented and tested in migrations.
+
+The exported repository creation type permits only `source: manual` with null
+confidence or `source: email` with validated confidence. Source and confidence
+are immutable after creation. Direct authenticated inserts cannot create
+`source: demo` rows.
+
+The fixed one-time bootstrap is the deliberate narrow exception: a
+parameterless `SECURITY DEFINER` function derives the owner only from
+`auth.uid()`, uses a locked search path and schema-qualified relations, and
+inserts only the three version-controlled sample descriptors. It accepts no
+owner, source, title, amount, date, or arbitrary payload. Execute is revoked
+from `PUBLIC` and `anon` and granted only to `authenticated`. The marker and
+fixed inserts remain transactional and repeated calls never reinsert changed
+or deleted seed rows.
 
 The extraction rate-limit table has RLS enabled but no direct authenticated
 table grants. A `SECURITY DEFINER`, parameterless function derives

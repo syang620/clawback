@@ -225,6 +225,12 @@ Deno.test("CORS echoes only an allowed origin and varies by Origin", () => {
   );
 });
 
+Deno.test("CORS permits authenticated native requests without an Origin header", () => {
+  const headers = createCorsHeaders(null, ["https://app.example"]);
+  assertEquals(headers.get("Access-Control-Allow-Origin"), null);
+  assertEquals(headers.get("Vary"), "Origin");
+});
+
 Deno.test("OpenAI request uses Responses structured output and store false", async () => {
   let requestBody: Record<string, unknown> | null = null;
   const extractor = new OpenAIEmailExtractor({

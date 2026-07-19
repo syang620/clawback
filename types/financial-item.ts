@@ -25,7 +25,7 @@ export interface FinancialItem {
   completedAt: string | null;
 }
 
-export interface CreateFinancialItemInput {
+export interface FinancialItemCreateFields {
   kind: FinancialItemKind;
   title: string;
   provider: string | null;
@@ -36,4 +36,10 @@ export interface CreateFinancialItemInput {
   actionUrl: string | null;
 }
 
-export type UpdateFinancialItemInput = Partial<CreateFinancialItemInput>;
+export type CreateFinancialItemInput = FinancialItemCreateFields &
+  (
+    | { source: 'manual'; extractionConfidence: null }
+    | { source: 'email'; extractionConfidence: number }
+  );
+
+export type UpdateFinancialItemInput = Partial<FinancialItemCreateFields>;

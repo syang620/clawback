@@ -117,7 +117,7 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       bootstrap_financial_items: {
-        Args: { p_reference_date?: string };
+        Args: never;
         Returns: boolean;
       };
       claim_financial_email_extraction_slot: {

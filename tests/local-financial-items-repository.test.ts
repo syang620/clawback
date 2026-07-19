@@ -10,6 +10,8 @@ const input: CreateFinancialItemInput = {
   dueAt: '2026-08-15T12:00:00.000Z',
   recurrence: 'annual',
   actionUrl: 'https://example.com/account',
+  source: 'manual',
+  extractionConfidence: null,
 };
 
 describe('Checkpoint 4A local repository', () => {
@@ -56,5 +58,38 @@ describe('Checkpoint 4A local repository', () => {
     expect(items).toHaveLength(3);
     expect(items.every((item) => item.source === 'demo')).toBe(true);
     await expect(repository.ensureInitialSeed()).resolves.toBeUndefined();
+  });
+
+  it('preserves email provenance and never lets update overwrite it', async () => {
+    const repository = new LocalFinancialItemsRepository({ initialItems: [] });
+    const created = await repository.createItem({
+      ...input,
+      source: 'email',
+      extractionConfidence: 0.8,
+    });
+
+    expect(created).toMatchObject({
+      source: 'email',
+      extractionConfidence: 0.8,
+    });
+    const updated = await repository.updateItem(created.id, {
+      title: 'Edited title',
+      source: 'demo',
+      extractionConfidence: null,
+    } as never);
+    expect(updated).toMatchObject({
+      title: 'Edited title',
+      source: 'email',
+      extractionConfidence: 0.8,
+    });
+  });
+
+  it('rejects demo provenance through the public creation API at runtime', async () => {
+    await expect(
+      new LocalFinancialItemsRepository({ initialItems: [] }).createItem({
+        ...input,
+        source: 'demo',
+      } as unknown as CreateFinancialItemInput),
+    ).rejects.toThrow('Invalid financial item creation provenance.');
   });
 });

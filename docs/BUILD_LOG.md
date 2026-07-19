@@ -764,3 +764,62 @@ Included in `feat: add pluggable email extraction backend`. No tag was created.
 ### Codex Session
 
 Primary session identifier pending `/feedback` capture.
+
+---
+
+## 2026-07-19 — Milestone 05 Checkpoint 5B-1 Client and Provenance Foundation
+
+### Objective
+
+Establish the provider-neutral client boundary and database-enforced financial-
+item provenance before adding the pasted-email route or review UI.
+
+### Codex Contribution
+
+- Reconciled the binding AGENTS evidence requirement with the approved
+  no-evidence MVP decision; confidence and bounded warnings remain.
+- Added a typed authenticated extraction service, strict response-envelope
+  validator, normalized safe errors, lifecycle abort semantics, and
+  `Retry-After` support.
+- Added locale-independent reference-date derivation in the resolved IANA
+  timezone with Gregorian calendar and Latin digits.
+- Restricted exported creation to manual or email provenance, preserved source
+  and confidence through both repositories, and prevented update paths from
+  changing them.
+- Added migration `20260719000100` to deny direct demo inserts, enforce
+  source/confidence pairing, and make provenance immutable.
+- Replaced the customizable invoker bootstrap with a parameterless, fixed,
+  locked `SECURITY DEFINER` bootstrap that remains transactional and
+  idempotent.
+- Added focused Jest, Deno CORS, and pgTAP coverage and verified the hosted
+  migration with isolated anonymous users.
+
+### Verification
+
+- Expo dependency check, TypeScript, lint, formatting, 25 Jest suites with 164
+  tests, web export, and `git diff --check`: passed
+- Deno format, lint, type-check, and 19 mocked tests: passed
+- Local database reset: passed with all three migrations
+- Local required unscoped database lint and public-schema lint: passed with no
+  findings
+- Local pgTAP: passed, 62 tests across two files
+- Hosted migration parity and public-schema lint: passed
+- Hosted direct-demo denial, manual/email insertion, immutable provenance,
+  fixed bootstrap, no-reseed, distinct-user RLS, and unauthenticated denial:
+  passed
+- Hosted allowed/forbidden browser origin and authenticated/unauthenticated
+  no-Origin native request checks: passed
+- Tracked and exported-source scans found no private credential; public
+  Supabase bundle configuration and safe key-prefix validation literals are
+  expected
+
+### Remaining Scope
+
+- Checkpoint 5B-2 route, input state machine, editable review form, explicit
+  email-source Save, and manual web/iOS review have not started.
+- The OpenAI project soft-budget configuration remains pending owner action and
+  unverified.
+
+### Commit
+
+Not created. No commit, tag, or push was performed.

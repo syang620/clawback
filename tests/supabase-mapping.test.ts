@@ -5,6 +5,7 @@ import {
   calendarDateFromFinancialItemRow,
   mapFinancialItemRow,
   toFinancialItemInsert,
+  toFinancialItemUpdate,
 } from '@/services/financial-items/mapping';
 import type { FinancialItemRow } from '@/services/financial-items/mapping';
 import type { CreateFinancialItemInput } from '@/types/financial-item';
@@ -98,6 +99,8 @@ describe('Checkpoint 4A database mapping', () => {
       dueAt: '2026-08-15T12:00:00.000Z',
       recurrence: 'annual',
       actionUrl: null,
+      source: 'manual',
+      extractionConfidence: null,
     };
 
     expect(toFinancialItemInsert(input, row.user_id)).toEqual({
@@ -115,5 +118,86 @@ describe('Checkpoint 4A database mapping', () => {
       extraction_confidence: null,
       completed_at: null,
     });
+  });
+
+  it('preserves validated email provenance on creation', () => {
+    expect(
+      toFinancialItemInsert(
+        {
+          kind: 'subscription',
+          title: 'Review email renewal',
+          provider: 'Example',
+          valueCents: null,
+          chargeAmountCents: 1299,
+          dueAt: '2026-08-15T12:00:00.000Z',
+          recurrence: 'monthly',
+          actionUrl: null,
+          source: 'email',
+          extractionConfidence: 0.65,
+        },
+        row.user_id,
+      ),
+    ).toMatchObject({ source: 'email', extraction_confidence: 0.65 });
+  });
+
+  it('rejects invalid public creation provenance at runtime', () => {
+    const base = {
+      kind: 'trial',
+      title: 'Invalid provenance',
+      provider: null,
+      valueCents: null,
+      chargeAmountCents: 1000,
+      dueAt: '2026-08-15T12:00:00.000Z',
+      recurrence: 'none',
+      actionUrl: null,
+    };
+
+    expect(() =>
+      toFinancialItemInsert(
+        {
+          ...base,
+          source: 'demo',
+          extractionConfidence: null,
+        } as unknown as CreateFinancialItemInput,
+        row.user_id,
+      ),
+    ).toThrow('Invalid financial item creation provenance.');
+    expect(() =>
+      toFinancialItemInsert(
+        {
+          ...base,
+          source: 'email',
+          extractionConfidence: null,
+        } as unknown as CreateFinancialItemInput,
+        row.user_id,
+      ),
+    ).toThrow('Invalid financial item creation provenance.');
+  });
+
+  it('does not map provenance fields into updates', () => {
+    expect(
+      toFinancialItemUpdate({
+        title: 'Safe update',
+        source: 'demo',
+        extractionConfidence: 1,
+      } as never),
+    ).toEqual({ title: 'Safe update' });
+  });
+
+  it('rejects inconsistent provenance returned by a repository', () => {
+    expect(() =>
+      mapFinancialItemRow({
+        ...row,
+        source: 'email',
+        extraction_confidence: null,
+      }),
+    ).toThrow('Invalid financial item provenance.');
+    expect(() =>
+      mapFinancialItemRow({
+        ...row,
+        source: 'manual',
+        extraction_confidence: 0.5,
+      }),
+    ).toThrow('Invalid financial item provenance.');
   });
 });

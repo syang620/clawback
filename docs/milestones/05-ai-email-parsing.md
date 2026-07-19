@@ -98,6 +98,25 @@ Checkpoint 5A passes only when:
 
 Checkpoint 5B begins only after a separately reported 5A pass.
 
+### Checkpoint 5B-1 — Client and Provenance Foundation
+
+- Resolve the repository-policy conflict by replacing the prior AGENTS rule,
+  `"6. Include confidence and evidence information."`, with confidence plus
+  bounded warnings and an explicit no-evidence MVP policy.
+- Add the typed authenticated Edge Function service, strict runtime response
+  validation, stable safe errors, abort semantics, and `Retry-After` support.
+- Derive the trusted reference date from Gregorian, Latin-digit
+  `formatToParts()` output in the resolved device IANA timezone.
+- Restrict public creation to manual/null-confidence or email/validated-
+  confidence provenance and prevent updates from changing provenance.
+- Deny direct authenticated demo insertion in the database while preserving the
+  fixed, transactional one-time bootstrap through a no-argument, locked
+  `SECURITY DEFINER` function.
+- Verify browser and native origin/auth behavior, local pgTAP, hosted RLS,
+  fixed seeding, and no-reseeding before changing routes or review UI.
+
+### Checkpoint 5B-2 — Route, Review, and Save Workflow
+
 Planned scope:
 
 - Connected-only pasted-email entry
@@ -163,7 +182,62 @@ local extraction are operational. The owner accepted the default GPT-5.6 rate
 limits for the hackathon MVP. The owner-only OpenAI project budget/alert
 configuration remains pending and unverified because its control has not yet
 been located in the account UI; it does not block this build. Checkpoint 5A is
-accepted. Checkpoint 5B has not started.
+accepted. Checkpoint 5B-1 is implemented and has passed its hard gate.
+Checkpoint 5B-2 routes and review UI have not started.
+
+### Checkpoint 5B-1 Hard Gate
+
+- `npx expo install --check`: passed
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 25 suites and 164 tests
+- `npx expo export --platform web`: passed
+- `git diff --check`: passed
+- Deno format, lint, and type-check: passed
+- Deno mocked tests: passed, 19 tests
+- AGENTS evidence conflict: resolved explicitly; the approved no-evidence MVP
+  rule is now binding, while bounded warnings and uncalibrated confidence remain
+  in the protocol
+- Typed client service and strict response parser: passed focused Jest tests for
+  success, no-action, actionable invariants, null versus zero, unsafe URL/date/
+  money rejection, all normalized server-code mappings, safe unknown/network
+  errors, and explicit lifecycle aborts
+- Rate limit contract: passed; valid `Retry-After` is retained, malformed or
+  absent values safely use 60 seconds, and the service never retries or changes
+  providers
+- Reference-date derivation: passed year-end, leap-day, DST, UTC-east, and
+  UTC-west cases using Gregorian calendar, Latin digits, and IANA timezone
+- Public repository provenance: passed; only manual/null-confidence and email/
+  validated-confidence creation are exposed, repositories preserve provenance,
+  and update mapping cannot change source or confidence
+- Local migration reset: passed with migration `20260719000100`
+- Local required unscoped database lint and public-schema lint: passed with no
+  findings
+- Local pgTAP: passed, 62 tests across two files
+- Local database provenance: passed; direct demo denied, own manual/email
+  allowed, confidence/source pairing enforced, provenance immutable, fixed
+  bootstrap works, repeated bootstrap does not reseed, and cross-user RLS
+  remains intact
+- Hosted migration parity: passed through `20260719000100`
+- Hosted public-schema lint: passed with no findings
+- Hosted isolated anonymous-user database verification: passed; IDs were
+  asserted distinct, demo insertion denied, manual/email allowed, fixed
+  bootstrap and no-reseed passed, cross-user read/update/delete returned no
+  rows, and unauthenticated read/write were denied
+- Hosted browser/native verification: passed; allowed browser origin plus valid
+  JWT succeeded, forbidden browser origin returned 403, no-Origin authenticated
+  native request succeeded, and no-Origin missing-JWT request returned 401
+- Deno CORS unit coverage: passed for exact browser origin and no-Origin native
+  headers; authentication remains function-owned after CORS handling
+- Database type regeneration command remains
+  `npx supabase gen types typescript --local`
+- Tracked and exported-source scans: passed; no private key, service-role key,
+  database URL, or OpenAI key value was found. Expected safe literals in
+  validation code/documentation and the public Supabase URL/publishable key in
+  the connected Expo bundle are not private secrets
+- No client route, review form, raw-email storage, model selector, Gmail access,
+  or Milestone 06 work was added in 5B-1
 
 ### Checkpoint 5A Files Changed
 

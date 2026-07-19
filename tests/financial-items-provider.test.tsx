@@ -28,6 +28,8 @@ const manualPerkInput: CreateFinancialItemInput = {
   dueAt: '2026-07-17T12:00:00.000Z',
   recurrence: 'monthly',
   actionUrl: null,
+  source: 'manual',
+  extractionConfidence: null,
 };
 
 function dependenciesFor(
@@ -140,6 +142,32 @@ describe('Checkpoint 4B shared financial-item state', () => {
     expect(screen.getByText('Items 4')).toBeTruthy();
     expect(screen.getByText('Available 7700')).toBeTruthy();
     expect(screen.getByText('First Use new credit')).toBeTruthy();
+  });
+
+  it('passes validated email provenance through the provider unchanged', async () => {
+    const repository = new LocalFinancialItemsRepository({ initialItems: [] });
+    const createSpy = jest.spyOn(repository, 'createItem');
+    const { context } = await renderProvider(repository);
+
+    let created: FinancialItem | null = null;
+    await act(async () => {
+      created = await context.createItem({
+        ...manualPerkInput,
+        source: 'email',
+        extractionConfidence: 0.7,
+      });
+    });
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'email',
+        extractionConfidence: 0.7,
+      }),
+    );
+    expect(created).toMatchObject({
+      source: 'email',
+      extractionConfidence: 0.7,
+    });
   });
 
   it('keeps visible state unchanged and exposes a safe error after a write failure', async () => {

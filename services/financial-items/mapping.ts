@@ -1,5 +1,6 @@
 import { formatCalendarDateInput } from '@/lib/dates';
 import { getSafeHttpsUrl } from '@/lib/urls';
+import { assertCreateFinancialItemProvenance } from '@/features/financial-items/logic/create-financial-item';
 import type { Database } from '@/types/database';
 import type {
   CreateFinancialItemInput,
@@ -101,6 +102,12 @@ export function mapFinancialItemRow(value: unknown): FinancialItem {
   ) {
     throw new TypeError('Invalid financial item extraction confidence.');
   }
+  if (
+    (source === 'email' && extractionConfidence === null) ||
+    (source !== 'email' && extractionConfidence !== null)
+  ) {
+    throw new TypeError('Invalid financial item provenance.');
+  }
 
   const title = requireString(row.title, 'title').trim();
   if (!title) throw new TypeError('Invalid financial item title.');
@@ -129,6 +136,7 @@ export function toFinancialItemInsert(
   input: CreateFinancialItemInput,
   userId: string,
 ): FinancialItemInsert {
+  assertCreateFinancialItemProvenance(input);
   return {
     user_id: userId,
     kind: input.kind,
@@ -140,8 +148,8 @@ export function toFinancialItemInsert(
     recurrence: input.recurrence,
     action_url: input.actionUrl,
     status: 'active',
-    source: 'manual',
-    extraction_confidence: null,
+    source: input.source,
+    extraction_confidence: input.extractionConfidence,
     completed_at: null,
   };
 }

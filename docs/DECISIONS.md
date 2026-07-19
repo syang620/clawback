@@ -211,3 +211,34 @@ provider comparison without coupling the Expo application to a model vendor.
   financial items or perform financial actions.
 - A database-backed per-user limit controls extraction abuse and cost.
 - Local demo mode remains manual-entry only.
+
+## ADR-014 — Restricted Financial-Item Provenance and Fixed Demo Bootstrap
+
+**Status:** Accepted
+
+**Decision:** Public application creation supports only `manual` and `email`
+sources. `manual` requires null extraction confidence; `email` requires a
+validated confidence value from zero to one. Source and confidence are
+immutable. Direct authenticated inserts of `demo` rows are denied. The fixed
+one-time seed operation is the only path that can create demo rows and is a
+parameterless, narrowly scoped `SECURITY DEFINER` function.
+
+**Reason:** TypeScript restrictions alone cannot stop a connected client from
+calling PostgREST directly. The database must protect provenance while still
+allowing the accepted first-run sample experience.
+
+**Consequences:**
+
+- The bootstrap derives its owner only from `auth.uid()` and accepts no user ID,
+  source, title, amount, date, or arbitrary item payload.
+- It inserts only version-controlled sample descriptors through
+  schema-qualified relations with a locked search path.
+- Execute is revoked from `PUBLIC` and `anon` and granted only to
+  `authenticated`.
+- This is a deliberate replacement for the earlier `SECURITY INVOKER`
+  bootstrap decision: invoker RLS cannot both deny public demo inserts and let
+  the same caller insert fixed demo rows.
+- The transactional marker remains authoritative, so repeated calls never
+  reinsert completed, changed, or deleted samples.
+- Repository and database tests verify manual/email provenance, demo denial,
+  immutable provenance, fixed seeding, and cross-user isolation.

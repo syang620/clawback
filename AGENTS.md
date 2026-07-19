@@ -210,7 +210,8 @@ The parser must:
 3. Request structured output using a strict JSON schema.
 4. Extract only supported fields.
 5. Return `null` for information that is not present.
-6. Include confidence and evidence information.
+6. Include confidence and bounded warning information. Evidence is omitted
+   from the hackathon MVP, and raw email or model output must not be persisted.
 7. Never invent a cancellation or redemption URL.
 8. Never claim that a subscription was canceled.
 9. Require user confirmation before creating a task.

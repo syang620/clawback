@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { formatCalendarDateInput } from '@/lib/dates';
 import {
   mapFinancialItemRow,
   toFinancialItemInsert,
@@ -91,15 +90,8 @@ export class SupabaseFinancialItemsRepository implements FinancialItemsRepositor
     return data !== null;
   }
 
-  async ensureInitialSeed(referenceDate?: Date): Promise<void> {
-    const args = referenceDate
-      ? {
-          p_reference_date: formatCalendarDateInput(
-            referenceDate.toISOString(),
-          ),
-        }
-      : {};
-    const { error } = await this.client.rpc('bootstrap_financial_items', args);
+  async ensureInitialSeed(): Promise<void> {
+    const { error } = await this.client.rpc('bootstrap_financial_items');
     if (error) this.fail('seed', error);
   }
 

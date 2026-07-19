@@ -103,6 +103,8 @@ describe('Milestone 03 manual-item validation and creation', () => {
         dueAt: '2026-07-31T12:00:00.000Z',
         recurrence: 'quarterly',
         actionUrl: 'https://example.com/account',
+        source: 'manual',
+        extractionConfidence: null,
       },
     });
   });

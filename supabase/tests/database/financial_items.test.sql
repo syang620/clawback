@@ -68,39 +68,44 @@ select ok(
 );
 
 select ok(
-  not (
+  (
     select prosecdef
     from pg_proc
-    where oid = 'public.bootstrap_financial_items(date)'::regprocedure
+    where oid = 'public.bootstrap_financial_items()'::regprocedure
   ),
-  'bootstrap function is SECURITY INVOKER'
+  'bootstrap function is narrowly scoped SECURITY DEFINER'
 );
 select is(
   (
     select provolatile::text
     from pg_proc
-    where oid = 'public.bootstrap_financial_items(date)'::regprocedure
+    where oid = 'public.bootstrap_financial_items()'::regprocedure
   ),
   'v',
   'bootstrap function is VOLATILE'
 );
 select ok(
   (
-    select pronargs = 1 and proargnames = array['p_reference_date']
+    select pronargs = 0 and proargnames is null
     from pg_proc
-    where oid = 'public.bootstrap_financial_items(date)'::regprocedure
+    where oid = 'public.bootstrap_financial_items()'::regprocedure
   ),
-  'bootstrap function exposes no user_id parameter'
+  'bootstrap function accepts no customizable arguments'
+);
+select is(
+  to_regprocedure('public.bootstrap_financial_items(date)'),
+  null::regprocedure,
+  'the prior customizable date overload no longer exists'
 );
 select ok(
   not has_function_privilege(
     'anon',
-    'public.bootstrap_financial_items(date)',
+    'public.bootstrap_financial_items()',
     'execute'
   )
   and has_function_privilege(
     'authenticated',
-    'public.bootstrap_financial_items(date)',
+    'public.bootstrap_financial_items()',
     'execute'
   ),
   'only authenticated clients can execute bootstrap'
@@ -126,6 +131,14 @@ values
   ),
   (
     '00000000-0000-0000-0000-00000000000c',
+    'authenticated',
+    'authenticated',
+    true,
+    now(),
+    now()
+  ),
+  (
+    '00000000-0000-0000-0000-00000000000d',
     'authenticated',
     'authenticated',
     true,
@@ -346,7 +359,7 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"role":"authenticated"}', true);
 select throws_ok(
-  $$ select public.bootstrap_financial_items('2026-07-18') $$,
+  $$ select public.bootstrap_financial_items() $$,
   '42501',
   'An authenticated user is required.',
   'bootstrap rejects a missing auth.uid()'
@@ -461,12 +474,33 @@ select set_config(
   true
 );
 
+select throws_ok(
+  $$
+    insert into public.financial_items (
+      user_id,
+      kind,
+      title,
+      due_at,
+      source
+    ) values (
+      '00000000-0000-0000-0000-00000000000c',
+      'trial',
+      'Caller supplied demo row',
+      '2026-08-03T12:00:00Z',
+      'demo'
+    )
+  $$,
+  '42501',
+  'new row violates row-level security policy for table "financial_items"',
+  'authenticated callers cannot directly insert demo rows'
+);
+
 select ok(
-  public.bootstrap_financial_items('2026-07-18'),
+  public.bootstrap_financial_items(),
   'first bootstrap call seeds an empty user'
 );
 select ok(
-  not public.bootstrap_financial_items('2026-07-18'),
+  not public.bootstrap_financial_items(),
   'repeated bootstrap is a no-op'
 );
 select is(
@@ -485,11 +519,29 @@ select is(
 );
 select is(
   (
+    select count(*)
+    from public.financial_items
+    where user_id = '00000000-0000-0000-0000-00000000000c'
+      and title in (
+        'Cancel free trial',
+        'Use monthly Dunkin'' credit',
+        'Use quarterly airline benefit'
+      )
+      and extraction_confidence is null
+  ),
+  3::bigint,
+  'bootstrap inserts only its fixed version-controlled demo descriptors'
+);
+select is(
+  (
     select due_at
     from public.financial_items
     where provider = 'FoundersCard'
   ),
-  '2026-07-21T12:00:00Z'::timestamptz,
+  (
+    ((timezone('UTC', statement_timestamp()))::date + 3)::timestamp
+    + interval '12 hours'
+  ) at time zone 'UTC',
   'bootstrap uses the canonical noon-UTC deadline'
 );
 select is(
@@ -503,6 +555,131 @@ select is(
     where provider = 'FoundersCard'
   ),
   'FoundersCard remains the earliest seeded deadline'
+);
+
+update public.financial_items
+set status = 'completed'
+where provider = 'FoundersCard';
+delete from public.financial_items
+where provider = 'Amex Gold';
+select ok(
+  not public.bootstrap_financial_items(),
+  'bootstrap remains claimed after seed rows are changed or deleted'
+);
+select is(
+  (select count(*) from public.financial_items),
+  2::bigint,
+  'bootstrap does not reinsert deleted or completed demo rows'
+);
+select ok(
+  (
+    select status = 'completed'
+    from public.financial_items
+    where provider = 'FoundersCard'
+  )
+  and not exists (
+    select 1
+    from public.financial_items
+    where provider = 'Amex Gold'
+  ),
+  'bootstrap preserves the caller changes made after initial seeding'
+);
+
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"00000000-0000-0000-0000-00000000000d","role":"authenticated"}',
+  true
+);
+
+insert into public.financial_items (
+  user_id,
+  kind,
+  title,
+  due_at,
+  source,
+  extraction_confidence
+)
+values
+  (
+    '00000000-0000-0000-0000-00000000000d',
+    'trial',
+    'Direct manual row',
+    '2026-08-04T12:00:00Z',
+    'manual',
+    null
+  ),
+  (
+    '00000000-0000-0000-0000-00000000000d',
+    'subscription',
+    'Direct email row',
+    '2026-08-05T12:00:00Z',
+    'email',
+    0.75
+  );
+select is(
+  (
+    select count(*)
+    from public.financial_items
+    where source in ('manual', 'email')
+  ),
+  2::bigint,
+  'authenticated clients can insert owned manual and email rows'
+);
+select throws_ok(
+  $$
+    update public.financial_items
+    set source = 'email', extraction_confidence = 0.5
+    where title = 'Direct manual row'
+  $$,
+  '42501',
+  'Financial item provenance cannot be changed.',
+  'authenticated clients cannot change source or confidence'
+);
+select throws_ok(
+  $$
+    insert into public.financial_items (
+      user_id,
+      kind,
+      title,
+      due_at,
+      source,
+      extraction_confidence
+    ) values (
+      '00000000-0000-0000-0000-00000000000d',
+      'trial',
+      'Manual row with confidence',
+      '2026-08-06T12:00:00Z',
+      'manual',
+      0.5
+    )
+  $$,
+  '23514',
+  'new row for relation "financial_items" violates check constraint "financial_items_source_confidence_check"',
+  'manual rows cannot carry extraction confidence'
+);
+select throws_ok(
+  $$
+    insert into public.financial_items (
+      user_id,
+      kind,
+      title,
+      due_at,
+      source,
+      extraction_confidence
+    ) values (
+      '00000000-0000-0000-0000-00000000000d',
+      'subscription',
+      'Email row without confidence',
+      '2026-08-07T12:00:00Z',
+      'email',
+      null
+    )
+  $$,
+  '23514',
+  'new row for relation "financial_items" violates check constraint "financial_items_source_confidence_check"',
+  'email rows require validated extraction confidence'
 );
 
 select * from finish();

@@ -59,7 +59,20 @@ export class LocalFinancialItemsRepository implements FinancialItemsRepository {
 
     const updated: FinancialItem = {
       ...current,
-      ...input,
+      ...(input.kind !== undefined ? { kind: input.kind } : {}),
+      ...(input.title !== undefined ? { title: input.title } : {}),
+      ...(input.provider !== undefined ? { provider: input.provider } : {}),
+      ...(input.valueCents !== undefined
+        ? { valueCents: input.valueCents }
+        : {}),
+      ...(input.chargeAmountCents !== undefined
+        ? { chargeAmountCents: input.chargeAmountCents }
+        : {}),
+      ...(input.dueAt !== undefined ? { dueAt: input.dueAt } : {}),
+      ...(input.recurrence !== undefined
+        ? { recurrence: input.recurrence }
+        : {}),
+      ...(input.actionUrl !== undefined ? { actionUrl: input.actionUrl } : {}),
       updatedAt: this.clock().toISOString(),
     };
     this.replaceItem(updated);

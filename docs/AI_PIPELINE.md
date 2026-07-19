@@ -236,9 +236,11 @@ Invalid input and failed authentication do not consume capacity. Provider
 failures and timeouts do consume a claimed slot because they incurred work.
 Exhaustion returns HTTP 429, `rate_limited`, and `Retry-After`.
 
-The OpenAI project uses a $10 monthly soft budget with alerts at 50%, 80%, and
-100%. OpenAI budgets are monitoring thresholds rather than hard stops, so the
-database rate limit remains the application-enforced control.
+The proposed OpenAI project setting is a $10 monthly soft budget with alerts at
+50%, 80%, and 100%, but that owner-only dashboard configuration remains pending
+and unverified. OpenAI budgets are monitoring thresholds rather than hard
+stops, so the verified database rate limit remains the application-enforced
+control.
 
 ## 12. Server-Only Configuration
 

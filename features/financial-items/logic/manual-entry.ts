@@ -1,6 +1,7 @@
 import { parseCalendarDateInput } from '@/lib/dates';
 import { parseDollarInput } from '@/lib/money';
 import { getSafeHttpsUrl } from '@/lib/urls';
+import { assertCreateFinancialItemProvenance } from '@/features/financial-items/logic/create-financial-item';
 import type {
   CreateFinancialItemInput,
   FinancialItem,
@@ -128,6 +129,8 @@ export function validateManualFinancialItem(
       dueAt: deadline.isoDate,
       recurrence: values.recurrence,
       actionUrl: actionUrl?.href ?? null,
+      source: 'manual',
+      extractionConfidence: null,
     },
   };
 }
@@ -137,6 +140,7 @@ export function createManualFinancialItem(
   id: string,
   createdAt: Date,
 ): FinancialItem {
+  assertCreateFinancialItemProvenance(input);
   if (!id) throw new RangeError('Manual financial item id is required.');
   if (Number.isNaN(createdAt.getTime())) {
     throw new RangeError('Creation date must be valid.');
@@ -148,8 +152,8 @@ export function createManualFinancialItem(
     id,
     userId: null,
     status: 'active',
-    source: 'manual',
-    extractionConfidence: null,
+    source: input.source,
+    extractionConfidence: input.extractionConfidence,
     createdAt: timestamp,
     updatedAt: timestamp,
     completedAt: null,

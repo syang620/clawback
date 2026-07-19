@@ -33,6 +33,8 @@ const input: CreateFinancialItemInput = {
   dueAt: '2026-07-31T12:00:00.000Z',
   recurrence: 'quarterly',
   actionUrl: null,
+  source: 'manual',
+  extractionConfidence: null,
 };
 
 function asClient(value: object): SupabaseClient<Database> {
@@ -57,6 +59,40 @@ describe('Checkpoint 4A Supabase repository', () => {
     });
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({ user_id: userId, source: 'manual' }),
+    );
+  });
+
+  it('creates an owned email item without overwriting provenance', async () => {
+    const emailRow = {
+      ...row,
+      source: 'email',
+      extraction_confidence: 0.85,
+    };
+    const insert = jest.fn(() => ({
+      select: () => ({
+        single: jest.fn().mockResolvedValue({ data: emailRow, error: null }),
+      }),
+    }));
+    const repository = new SupabaseFinancialItemsRepository(
+      asClient({ from: () => ({ insert }) }),
+      userId,
+    );
+
+    await expect(
+      repository.createItem({
+        ...input,
+        source: 'email',
+        extractionConfidence: 0.85,
+      }),
+    ).resolves.toMatchObject({
+      source: 'email',
+      extractionConfidence: 0.85,
+    });
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'email',
+        extraction_confidence: 0.85,
+      }),
     );
   });
 
@@ -91,17 +127,15 @@ describe('Checkpoint 4A Supabase repository', () => {
     expect(eq).toHaveBeenNthCalledWith(3, 'status', 'active');
   });
 
-  it('passes only the deterministic UTC calendar date to the bootstrap RPC', async () => {
+  it('calls the fixed no-argument bootstrap RPC', async () => {
     const rpc = jest.fn().mockResolvedValue({ data: true, error: null });
     const repository = new SupabaseFinancialItemsRepository(
       asClient({ rpc }),
       userId,
     );
 
-    await repository.ensureInitialSeed(new Date('2026-07-18T23:59:00.000Z'));
-    expect(rpc).toHaveBeenCalledWith('bootstrap_financial_items', {
-      p_reference_date: '2026-07-18',
-    });
+    await repository.ensureInitialSeed();
+    expect(rpc).toHaveBeenCalledWith('bootstrap_financial_items');
   });
 
   it('rejects a row owned by another user', async () => {
