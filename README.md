@@ -45,6 +45,7 @@ See `docs/PRODUCT.md` for detailed product requirements.
 - `docs/AI_PIPELINE.md` — AI extraction contract and trust boundaries
 - `docs/DECISIONS.md` — accepted product and architecture decisions
 - `docs/BUILD_LOG.md` — chronological build record
+- `docs/MODEL_EVALUATION.md` — synthetic GPT-5.6 and qwen3.5:9b results
 - `docs/milestones/` — milestone-specific execution plans
 
 ## Getting Started
@@ -157,6 +158,34 @@ npm test
 npx expo export --platform web
 ```
 
+### Opt-in model evaluation
+
+Live model evaluation is separate from normal tests and builds. It uses only
+synthetic fixtures and the same production adapters, prompt, schema, parser,
+normalizer, validator, and safe errors as the hosted function.
+
+Set `OPENAI_API_KEY` in the evaluator process without placing it in a repository
+file or `EXPO_PUBLIC_` variable, then run GPT-5.6 explicitly:
+
+```bash
+EVALUATION_PROVIDER=openai \
+OPENAI_EXTRACTION_MODEL=gpt-5.6 \
+npm run evaluate:email -- --run-set=initial
+```
+
+Local/private Ollama evaluation is also explicit:
+
+```bash
+EVALUATION_PROVIDER=ollama \
+OLLAMA_BASE_URL=http://127.0.0.1:11434 \
+OLLAMA_EXTRACTION_MODEL=qwen3.5:9b \
+npm run evaluate:email -- --run-set=initial
+```
+
+The evaluator is sequential and never retries automatically. It records only
+fixture IDs, normalized observations, durations, aggregate metrics, and safe
+failure codes. See `docs/MODEL_EVALUATION.md` for Milestone 05 results.
+
 ## Current limitations
 
 - Local demo data, including manually created items, resets when the app reloads
@@ -172,6 +201,15 @@ npx expo export --platform web
 - Broad offline synchronization remains deferred. Connected mode supports
   reviewed GPT-5.6 pasted-email extraction; local demo remains manual-entry
   only.
+- GPT-5.6 is the hosted submission provider. qwen3.5:9b is optional local/private
+  development support and is not recommended for unattended, hosted,
+  judge-facing, or fallback extraction.
+- Raw email and raw model output are not persisted. User review and explicit
+  Save remain mandatory for every extracted candidate.
+- VoiceOver remains pending. Rate-limit UI behavior is accepted through
+  automated testing only.
+- The OpenAI project soft-budget setting remains pending and unverified;
+  project budgets are alert thresholds, not a hard cap.
 - Android-specific implementation and verification have not begun.
 
 ## Build Week Evidence

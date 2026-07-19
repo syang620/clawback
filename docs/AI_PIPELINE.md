@@ -329,6 +329,25 @@ field correctness, null precision, deadlines, money, value-versus-charge
 classification, prompt-injection resistance, latency, and timeout/failure
 rate. Benchmarking must not delay the working hosted GPT-5.6 workflow.
 
+The opt-in runner is invoked only through `npm run evaluate:email` with an
+explicit `EVALUATION_PROVIDER` and provider-specific model configuration. For
+OpenAI it constructs the checked-out production `OpenAIEmailExtractor` through
+the shared factory, reads `OPENAI_API_KEY` only from the evaluator process, and
+spaces request starts by at least 31 seconds. It does not use the application
+quota, create an evaluation-only prompt or parser, retry automatically, or
+store raw output. Ollama uses the same production factory and shared core.
+
+Checkpoint 5B-3 evaluated 14 synthetic fixtures in 58 scored live runs, plus
+eight targeted GPT-5.6 field-attribution diagnostics. GPT-5.6
+retained 100% schema validity, actionable classification, deadline, money,
+null, explicit-zero, value-versus-charge, and prompt-injection metrics, with
+reviewable exact-recurrence and full-URL differences. qwen3.5:9b retained 100%
+schema validity, explicit-zero preservation, and prompt-injection resistance but
+was materially weaker on classification, deadlines, and core candidate exact
+matching. It is not recommended for unattended, hosted, judge-facing, or
+automatic-fallback extraction. See
+`MODEL_EVALUATION.md` for the complete normalized results.
+
 ## 16. Non-Goals
 
 The MVP does not scan inboxes, parse attachments, browse for links, persist raw

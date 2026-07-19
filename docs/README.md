@@ -38,6 +38,10 @@ Records accepted product and architecture decisions that should not be revisited
 
 Records what Codex built, what the team decided, what was verified, and what remains unresolved.
 
+### `MODEL_EVALUATION.md`
+
+Records the synthetic GPT-5.6 and local qwen3.5:9b evaluation method, normalized metrics, latency, repeated fixtures, and Milestone 05 conclusion.
+
 ## Milestones
 
 1. `milestones/01-foundation.md`

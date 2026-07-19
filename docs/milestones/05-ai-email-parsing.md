@@ -187,8 +187,10 @@ accepted. Checkpoint 5B-1 is implemented and has passed its hard gate.
 Checkpoint 5B-2 route-local workflow and review UI are implemented and have
 passed automated verification. The owner accepted Checkpoint 5B-2 for every
 check marked passed below. The rate-limit UI result is automated-only, and
-VoiceOver labels and reading order remain untested. Checkpoint 5B-3 model
-evaluation has not started.
+VoiceOver labels and reading order remain untested. Checkpoint 5B-3 evaluated
+both required models, passed the final automated and hosted integration gates,
+and found no blocking product correctness or safety defect. Milestone 05 is
+technically complete pending owner acceptance and the requested commit/tag.
 
 ### Checkpoint 5B-2 Automated Gate
 
@@ -269,8 +271,71 @@ Accessibility and layout:
 - VoiceOver labels and reading order: not tested
 - Metro/navigation errors: none observed; passed
 
-Checkpoint 5B-3 live GPT-5.6 and Ollama evaluation is intentionally outside
-this checkpoint and has not begun.
+Checkpoint 5B-3 live GPT-5.6 and Ollama evaluation is recorded below.
+
+### Checkpoint 5B-3 Model Evaluation
+
+- Synthetic fixture count: 14
+- Scored live run count: 58; eight targeted GPT-5.6 clarification diagnostics
+  brought the total live request count to 66
+- GPT-5.6: 26 runs; 100% schema validity, classification, null precision,
+  deadline, money, explicit-zero, value-versus-charge, and prompt-injection
+  metrics; 54.5% actionable core candidate exact match and 90.9% HTTPS URL
+  exact match
+- qwen3.5:9b: 32 runs; 100% schema validity, explicit-zero preservation, and
+  prompt-injection resistance; 81.3% classification, 67.9% deadline, 78.6%
+  money/value-charge/HTTPS exact match, and 14.3% actionable core candidate
+  exact match
+- GPT-5.6 latency: 2,634 ms median, 4,518 ms p95, 4,987 ms maximum
+- qwen3.5:9b latency: 20,869 ms median, 26,242 ms p95, 32,678 ms maximum
+- Both models: zero provider failures, zero timeouts, and no live safe error
+  codes
+- Required repeats: prompt injection and ambiguous date ran three times for
+  each model; every first-run inconsistent fixture also ran three times
+- Optional models were not run so required evaluation and verification remained
+  the priority
+- No product defect was found. GPT-5.6 remains the hosted submission provider;
+  qwen3.5:9b remains optional local/private development support and is not
+  recommended for unattended, hosted, judge-facing, or fallback extraction
+- Complete normalized results: `docs/MODEL_EVALUATION.md`
+
+### Final Milestone 05 Verification
+
+- `npx expo install --check`: passed
+- `npm run typecheck`: passed
+- `npm run lint`: passed
+- `npm run format:check`: passed
+- `npm test`: passed, 28 suites and 193 tests
+- `npx expo export --platform web`: passed, 1,368 modules bundled
+- `git diff --check`: passed
+- Deno format, lint, and type-check: passed across production and evaluation
+  code
+- Deno mocked tests: passed, 27 tests
+- Local database reset: passed with all three migrations
+- Local `public`-schema lint: passed with no findings
+- Local pgTAP: passed, 62 tests across two files
+- The optional unscoped local lint still reports only previously documented
+  extension-owned pgTAP compatibility findings; application-owned `public`
+  schema lint is clean
+- Hosted migration parity: passed through `20260719000100`
+- Hosted `public`-schema lint: passed with no findings
+- Hosted exact-origin preflight, forbidden-origin rejection, missing JWT, and
+  malformed JWT checks: passed
+- One authenticated anonymous-user GPT-5.6 extraction: passed
+- Explicit reviewed save, `source: email`, confidence range, second-session
+  persistence, completion, Undo, and smoke-row cleanup: passed
+- No browser-control surface was available for a second live UI walkthrough;
+  this final smoke used the authenticated hosted integration path. The accepted
+  5B-2 owner review remains the live UI evidence
+- Tracked and exported secret scans: passed; no private environment file,
+  actual OpenAI key, private exported credential, or evaluation fixture body
+  was found. One tracked private-prefix match is an intentional validation test
+  fixture, not a credential
+- Rate-limit UI remains accepted through automated tests only
+- VoiceOver labels and reading order remain pending
+- The OpenAI soft-budget setting remains pending and unverified. Project budget
+  alerts are not a hard spending cap
+- Acceptance blockers: none; deterministic URL validation is fail-closed
 
 ### Checkpoint 5B-1 Hard Gate
 

@@ -892,3 +892,77 @@ email-source Save workflow without beginning live model evaluation.
 ### Commit
 
 Not created. No commit, tag, or push was performed.
+
+---
+
+## 2026-07-19 — Milestone 05 Checkpoint 5B-3 Evaluation and Completion
+
+### Objective
+
+Evaluate the shared extraction pipeline against hosted GPT-5.6 and local
+qwen3.5:9b with synthetic fixtures, then complete the Milestone 05 automated,
+database, hosted, security, and documentation gates.
+
+### Codex Contribution
+
+- Completed the separate opt-in evaluator using the production extractor
+  factory, adapters, trusted instructions, schema, parsing, normalization,
+  validation, and safe error mapping.
+- Added 14 synthetic fixtures, deterministic normalized scoring, bounded repeat
+  controls, safe aggregate output, and mocked evaluator tests.
+- Spaced GPT request starts by 31 seconds for the visible 3 RPM and 10,000 TPM
+  limits, with no automatic retries and `store: false` retained.
+- Ran 58 scored live observations: 26 GPT-5.6 and 32 qwen3.5:9b,
+  followed by eight targeted GPT-5.6 field-attribution diagnostics.
+- Reverified the complete application, Deno, database, hosted, persistence,
+  completion/Undo, and secret boundaries.
+
+### Team Decisions
+
+- GPT-5.6 remains the hosted submission and judge provider.
+- qwen3.5:9b remains optional local/private support and is not recommended for
+  unattended, hosted, judge-facing, or automatic-fallback extraction.
+- Model confidence remains uncalibrated and never bypasses review or Save.
+- Optional models were skipped after required work so they could not delay the
+  milestone gate.
+
+### Verification
+
+- GPT-5.6: 26 runs, 100% schema validity/classification/deadline/money/null/
+  zero/value-charge/injection metrics, no timeout or provider failure
+- qwen3.5:9b: 32 runs, 100% schema validity/zero/injection metrics, with weaker
+  classification, deadline, and core candidate exact matching documented
+  separately
+- Expo dependency check, TypeScript, lint, formatting, 193 Jest tests, web
+  export, and `git diff --check`: passed
+- Deno format, lint, type-check, and 27 mocked tests: passed
+- Local reset, `public`-schema lint, and 62 pgTAP tests: passed
+- Hosted migration parity and `public`-schema lint: passed
+- Hosted exact-origin/authentication checks and one authenticated GPT-5.6
+  extraction: passed
+- Explicit email-source save, valid confidence, second-session persistence,
+  completion, Undo, and cleanup: passed
+- Tracked/exported secret scans: passed
+
+### Problems and Resolutions
+
+- The browser-control surface was unavailable for a second live UI walkthrough.
+  The final smoke used an authenticated hosted integration flow; the accepted
+  Checkpoint 5B-2 owner review remains the UI evidence.
+- Optional unscoped local lint reports extension-owned pgTAP compatibility
+  findings. Required application-owned `public`-schema lint is clean.
+
+### Remaining Limitations
+
+- VoiceOver labels and reading order remain untested.
+- Rate-limit UI remains accepted through automated tests only.
+- The OpenAI project soft-budget setting remains pending and unverified; it is
+  an alert threshold rather than a hard cap.
+
+### Commit
+
+Not created. No commit, tag, or push was performed.
+
+### Model Evaluation
+
+See `docs/MODEL_EVALUATION.md`.
