@@ -180,3 +180,34 @@ hackathon MVP.
 - Email/password, OAuth, profiles, and account upgrades remain out of scope.
 - Connected-mode failures are shown to the user and never silently switch the
   application into demo mode.
+
+## ADR-013 — Pluggable Server-Side Email Extraction
+
+**Status:** Accepted
+
+**Decision:** Use a provider-neutral financial email extractor inside the
+Supabase Edge Function. Hosted production and judging use the OpenAI Responses
+API with `gpt-5.6`. Optional local development may use Ollama, initially with
+`qwen3.5:9b`.
+
+**Reason:** GPT-5.6 is a meaningful, judge-ready part of the Build Week
+submission. A local Ollama adapter also supports private experimentation and
+provider comparison without coupling the Expo application to a model vendor.
+
+**Consequences:**
+
+- Provider selection is server-only and never appears in the client request or
+  review UI.
+- OpenAI requests set `store: false`; the API key remains an Edge Function
+  secret.
+- Ollama is local-only and is not exposed as an unauthenticated public service.
+- Both providers use the same trusted instructions, JSON Schema, runtime
+  validation, deterministic money/date normalization, and safe errors.
+- Models return decimal money strings; trusted code converts them to integer
+  cents.
+- Evidence is omitted from the MVP, and raw email/model output is neither
+  logged nor persisted.
+- Every result requires user review and explicit Save. Models never write
+  financial items or perform financial actions.
+- A database-backed per-user limit controls extraction abuse and cost.
+- Local demo mode remains manual-entry only.

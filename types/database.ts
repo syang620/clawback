@@ -26,6 +26,30 @@ export type Database = {
   };
   public: {
     Tables: {
+      financial_email_extraction_usage: {
+        Row: {
+          created_at: string;
+          request_count: number;
+          updated_at: string;
+          user_id: string;
+          window_started_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          request_count: number;
+          updated_at?: string;
+          user_id: string;
+          window_started_at: string;
+        };
+        Update: {
+          created_at?: string;
+          request_count?: number;
+          updated_at?: string;
+          user_id?: string;
+          window_started_at?: string;
+        };
+        Relationships: [];
+      };
       financial_item_bootstrap: {
         Row: { initialized_at: string; user_id: string };
         Insert: { initialized_at?: string; user_id: string };
@@ -95,6 +119,14 @@ export type Database = {
       bootstrap_financial_items: {
         Args: { p_reference_date?: string };
         Returns: boolean;
+      };
+      claim_financial_email_extraction_slot: {
+        Args: never;
+        Returns: {
+          allowed: boolean;
+          remaining: number;
+          retry_after_seconds: number;
+        }[];
       };
     };
     Enums: { [_ in never]: never };

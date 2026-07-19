@@ -21,7 +21,9 @@ flowchart LR
     A --> S[Supabase Client]
     S --> DB[(PostgreSQL)]
     S --> EF[Supabase Edge Function]
-    EF --> OAI[OpenAI Responses API / GPT-5.6]
+    EF --> PF[Server-side extractor factory]
+    PF --> OAI[OpenAI Responses API / GPT-5.6]
+    PF -. Local only .-> OL[Ollama / qwen3.5]
     EF --> DB
 ```
 
@@ -29,7 +31,9 @@ The Expo application is responsible for presentation, navigation, local interact
 
 Supabase is responsible for authentication, persistence, Row Level Security, and server-side AI invocation.
 
-GPT-5.6 is responsible only for converting unstructured email text into a constrained structured extraction. It does not directly mutate user data.
+GPT-5.6 is the hosted and judge-ready extractor. Ollama is an optional local
+development extractor. Both convert unstructured email text into the same
+constrained draft, and neither directly mutates user data.
 
 ## 3. Platform Strategy
 
@@ -204,6 +208,13 @@ Possible fields:
 
 Avoid storing full email content by default.
 
+### `financial_email_extraction_usage`
+
+This narrowly scoped table backs the atomic per-user extraction limit. Its
+primary key is `(user_id, window_started_at)`. RLS is enabled, clients receive
+no direct table privileges, and the only supported access path is the
+parameterless authenticated claim function.
+
 ## 8. TypeScript Domain Types
 
 ```ts
@@ -278,6 +289,8 @@ Expected operation:
 ```ts
 parseFinancialEmail(input: {
   emailText: string;
+  subject?: string;
+  emailSentDate?: string;
   userTimeZone: string;
   referenceDate: string;
 }): Promise<FinancialEmailExtraction>
@@ -296,6 +309,8 @@ This service calls the Supabase Edge Function.
 ```json
 {
   "emailText": "string",
+  "subject": "Your renewal reminder",
+  "emailSentDate": "2026-07-15",
   "userTimeZone": "America/New_York",
   "referenceDate": "2026-07-16"
 }
@@ -305,26 +320,45 @@ This service calls the Supabase Edge Function.
 
 ```json
 {
-  "provider": "FoundersCard",
-  "title": "Cancel FoundersCard trial",
-  "kind": "trial",
-  "valueCents": null,
-  "chargeAmountCents": 59500,
-  "dueAt": "2026-07-20T23:59:00-04:00",
-  "recurrence": "annual",
-  "actionUrl": "https://example.com/account",
-  "confidence": 0.91,
-  "needsReview": true,
-  "warnings": [],
-  "evidence": {
-    "provider": "FoundersCard",
-    "chargeAmount": "$595 annual membership",
-    "deadline": "Cancel before July 21"
+  "ok": true,
+  "extraction": {
+    "isActionable": true,
+    "candidate": {
+      "merchantName": "FoundersCard",
+      "title": "Cancel FoundersCard trial",
+      "kind": "trial",
+      "valueCents": null,
+      "chargeAmountCents": 59500,
+      "deadlineDate": "2026-07-20",
+      "recurrence": "annual",
+      "actionUrl": "https://example.com/account"
+    },
+    "confidence": 0.91,
+    "warnings": []
   }
 }
 ```
 
-All fields must be validated server-side before returning to the client.
+Models generate decimal money strings; the Edge Function validates and converts
+them to integer cents before returning this response. `merchantName` maps to the
+existing `FinancialItem.provider` only when the user reviews and saves. Evidence
+and raw email content are not returned, logged, or persisted. Mandatory review
+is application policy rather than a model-generated flag.
+
+### Extractor Interface
+
+```ts
+interface FinancialEmailExtractor {
+  extract(
+    emailText: string,
+    context: ExtractionContext,
+  ): Promise<GeneratedFinancialEmailExtraction>;
+}
+```
+
+`OpenAIEmailExtractor` and `OllamaEmailExtractor` implement this contract.
+Provider selection is resolved exclusively from Edge Function environment
+variables. The client cannot request a provider or model.
 
 ## 11. Authentication Strategy
 
@@ -371,6 +405,10 @@ using (auth.uid() = user_id);
 ```
 
 Exact SQL should be implemented and tested in migrations.
+
+The extraction rate-limit table has RLS enabled but no direct authenticated
+table grants. A `SECURITY DEFINER`, parameterless function derives
+`auth.uid()` and atomically claims one of 20 slots in the current UTC hour.
 
 ## 13. State Management
 
@@ -574,11 +612,24 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ### Edge Function
 
 ```text
+AI_EXTRACTION_PROVIDER
+AI_EXTRACTION_ALLOWED_ORIGINS
+AI_EXTRACTION_TIMEOUT_MS
 OPENAI_API_KEY
-OPENAI_MODEL
+OPENAI_EXTRACTION_MODEL
+OLLAMA_BASE_URL
+OLLAMA_EXTRACTION_MODEL
 ```
 
-No secret may use the `EXPO_PUBLIC_` prefix.
+No Edge Function variable may use the `EXPO_PUBLIC_` prefix. Hosted/judge mode
+uses OpenAI with `gpt-5.6`; Ollama variables are for local development only.
+
+The parse function disables gateway JWT verification only to let CORS
+preflight complete. It handles allowed `OPTIONS` requests before authentication
+and validates each `POST` bearer token through Supabase Auth `getUser()`. It
+does not use a service-role key or trust decoded claims alone. Origins are
+matched against an exact server-side allowlist and responses include
+`Vary: Origin`.
 
 ## 24. Security Review Checklist
 
@@ -589,6 +640,10 @@ Before submission:
 - Confirm RLS is enabled
 - Confirm service-role key is absent from client code
 - Confirm OpenAI key exists only server-side
+- Confirm OpenAI requests set `store: false`
+- Confirm hosted extraction uses GPT-5.6 and no silent provider fallback
+- Confirm CORS uses exact origins and unauthenticated POST is denied
+- Confirm the database-backed per-user extraction limit is active
 - Confirm raw emails are not logged
 - Confirm URLs are validated
 - Confirm error messages do not leak sensitive data

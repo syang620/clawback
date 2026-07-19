@@ -681,3 +681,86 @@ Not created. No Checkpoint 4B commit, tag, or push was performed.
 ### Codex Session
 
 Primary session identifier pending `/feedback` capture.
+
+---
+
+## 2026-07-18 — Milestone 05 Checkpoint 5A Extraction Foundation
+
+### Objective
+
+Build and verify the provider-neutral server foundation for hosted GPT-5.6
+email extraction and optional local Ollama extraction without beginning the
+client workflow.
+
+### Codex Contribution
+
+- Added one shared financial-email extraction contract, strict JSON Schema,
+  trusted prompt, runtime validator, safe error model, and deterministic decimal
+  money-to-cents normalization.
+- Implemented `OpenAIEmailExtractor` with the Responses API, `gpt-5.6`, strict
+  structured output, `store: false`, and explicit refusal/incomplete/content
+  handling.
+- Implemented `OllamaEmailExtractor` with native chat, `stream: false`,
+  `think: false`, temperature zero, schema format, timeout, and the same trusted
+  validation path.
+- Added function-owned Supabase Auth session validation, exact CORS origin
+  handling, and safe authenticated invocation without a service-role key.
+- Added an atomic database-backed limit of 20 provider invocations per user per
+  UTC hour, with no direct usage-table access.
+- Deployed the hosted function in GPT-5.6 mode and kept Ollama local-only.
+- Revised the milestone, AI pipeline, architecture, environment example, and
+  decision log for the dual-provider boundary.
+
+### Verification
+
+- Expo dependency check, typecheck, lint, format check, 116 Jest tests, web
+  export, and `git diff --check`: passed
+- Deno format, lint, type-check, and 18 mocked tests: passed
+- Local database reset and public-schema lint: passed
+- Required unscoped local database lint: exited nonzero on third-party pgTAP
+  extension compatibility findings; application-owned `public` schema lint was
+  clean
+- pgTAP: 52 tests passed
+- Local and hosted 25-way concurrent limit checks: exactly 20 allowed and 5
+  denied; distinct users retained independent capacity
+- Local authenticated Ollama invocation through
+  `host.docker.internal:11434`: passed
+- Local authenticated OpenAI Responses invocation with GPT-5.6: passed
+- Hosted migration parity and public-schema lint: passed
+- Hosted function deployment, exact-origin preflight, unauthenticated and
+  malformed-JWT denial, valid anonymous JWT, forbidden-origin denial, and live
+  GPT-5.6 extraction: passed
+- Tracked/exported secret checks: passed; ignored local values and provider
+  secrets are absent from tracked source and the Expo web export
+
+### Problems and Resolutions
+
+- Ollama initially timed out while emitting separate thinking output. Setting
+  `think: false` made the schema extraction complete in about 13 seconds.
+- Ollama's grammar compiler rejected nullable strings combined with
+  `minLength`/`maxLength`. Those two schema keywords were removed while the
+  shared runtime validator retained the exact limits.
+- Expo TypeScript and Jest initially scanned Deno-only code. The Deno subtree is
+  now excluded from those runners and remains independently checked by Deno.
+- The local Kong gateway intercepts browser preflight with its own wildcard
+  response. Hosted Supabase returned the function's required exact origin and
+  `Vary: Origin`; POST origin enforcement also passed.
+
+### Remaining Limitations
+
+- The approved $10 OpenAI monthly soft budget and 50%/80%/100% alerts require an
+  OpenAI project owner to configure or confirm them in the dashboard. No
+  authorized browser session was available, so the budget item remains pending
+  and unverified but does not block the accepted Checkpoint 5A build.
+- OpenAI's project budget is an alerting threshold, not a hard cap. The database
+  rate limiter is the application-enforced control.
+- Checkpoint 5B routes, review UI, persistence integration, and broader live
+  model evaluation have not started.
+
+### Commit
+
+Included in `feat: add pluggable email extraction backend`. No tag was created.
+
+### Codex Session
+
+Primary session identifier pending `/feedback` capture.
