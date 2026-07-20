@@ -50,7 +50,7 @@ export function FinancialItemList({
   const earliestActiveDeadline = findEarliestActiveDeadline(items);
 
   return (
-    <View className="gap-4">
+    <View className="gap-4" role="list">
       {rankedItems.map((item) => (
         <SwipeToStrike
           disabled={pendingItemOperations[item.id] !== undefined}

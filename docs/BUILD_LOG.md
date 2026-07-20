@@ -1125,4 +1125,89 @@ beginning the broader accessibility, cleanup, or deployment checkpoints.
 
 ### Commit
 
-Pending. No commit, tag, or push was performed.
+`a13875d` — `feat: complete Milestone 06 checkpoint 6B`
+
+---
+
+## 2026-07-19 — Milestone 06 Checkpoint 6C-1 Semantics and Focus
+
+### Objective
+
+Implement the semantics and focus half of Checkpoint 6C without beginning the
+reduced-motion, responsive/zoom, warning-cleanup, performance, or deployment
+work.
+
+### Codex Contribution
+
+- Added a presentation-only root focus coordinator and reusable page/section
+  headings. Routes now supply document titles, active page focus targets, main
+  content, primary navigation, current-link, and list semantics.
+- Added ordered first-invalid-field focus for manual and AI-review fields plus
+  email input validation requests. Web fields have stable label/error
+  associations; native labels remain concise and expose error hints.
+- Separated live alert/status messages from interactive Retry and Dismiss
+  controls, and added a bounded extraction-progress status.
+- Focused each new Undo action. Successful Undo focuses the current page and
+  announces the restored task once; failure, Dismiss, and expiry do not move
+  page focus.
+- Added reset confirmation/Cancel focus restoration, safe handling for an
+  unexpected reset rejection, external-open Dismiss focus restoration, and
+  native deadline modal title/trigger focus with accessibility escape.
+- Added task-heading and collection semantics, meaningful amount labels, and a
+  not-found route with a Home recovery link.
+- Added deterministic tests for focus coordination, validation order, semantic
+  state, error association, reset/deadline/external/Undo focus behavior, and
+  not-found recovery.
+
+### Scope Boundaries
+
+- No financial calculations, ranking, persistence, authentication, database,
+  extraction contract, rate limit, URL validation, mutation semantics, or
+  dependency changed.
+- No reduced-motion, responsive matrix, broad cleanup, deployment, live model,
+  hosted extraction, commit, tag, or push was performed.
+
+### Verification
+
+- Final post-acceptance deterministic matrix rerun on 2026-07-20: passed.
+- TypeScript: passed.
+- Lint: passed.
+- Formatting: passed.
+- Full Jest suite: passed, 42 suites and 280 tests.
+- Jest open-handle pass: passed, 42 suites and 280 tests.
+- Expo dependency compatibility check: passed.
+- Expo web export: passed, 1,180 modules in the final post-acceptance run.
+- `git diff --check`: passed.
+- Normal deterministic commands did not invoke GPT-5.6 or hosted services.
+- Expo export repeated the known command-environment
+  `NO_COLOR`/`FORCE_COLOR` warning. It remains classified as development-tool
+  environment output rather than an application defect and was not globally
+  suppressed.
+- The first July 20 rerun found a test-only reference-date assertion coupled to
+  the wall clock. The email workflow harness now uses an injected fixed date;
+  the countdown test separately keeps its intentional advancing clock. No
+  product or extraction behavior changed, and the full rerun passed afterward.
+
+### Compressed Owner Acceptance
+
+- On 2026-07-20, the owner passed the deadline-compressed web keyboard smoke
+  test for Home-to-Add navigation, one manual form, first-invalid-field focus,
+  completion focus moving to Undo, and successful Undo returning focus to the
+  current page heading.
+- The owner passed the iOS VoiceOver smoke test for the Home heading and primary
+  navigation, one task card, Complete and Undo, manual required fields, and
+  deadline-modal open, Cancel, and trigger-focus restoration.
+- The browser developer console and Metro/Expo output were both explicitly
+  inspected; no application warnings or errors were observed.
+- No hosted GPT-5.6 extraction call was made because no concrete
+  extraction-review defect required reproduction.
+- No submission blocker was found: core controls remained reachable, focus was
+  not trapped or left on removed content, no repeated focus loop or unusable
+  required field appeared, and the main demo workflow did not regress.
+- Browser Back/Forward nuances, extraction loading/review accessibility, failed
+  Undo recovery, Dismiss/expiry focus, reset/external/not-found focus, Activity,
+  startup/error states, exhaustive VoiceOver coverage, and announcement wording
+  were not exercised and are deferred due to submission-time constraints. They
+  are not claimed as passed.
+- Checkpoint 6C-1 is accepted under this compressed critical gate. Checkpoint
+  6C-2 has not started.

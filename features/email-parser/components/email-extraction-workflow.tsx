@@ -1,23 +1,35 @@
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useId, useRef } from 'react';
+import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 
+import { PageHeading } from '@/components/page-heading';
 import type { useEmailExtractionWorkflow } from '@/features/email-parser/use-email-extraction-workflow';
 import { FinancialItemFields } from '@/features/financial-items/components/financial-item-fields';
 
 type Workflow = ReturnType<typeof useEmailExtractionWorkflow>;
 
 interface EmailExtractionWorkflowProps {
+  isRouteFocused?: boolean;
   onCancel: () => void;
   onManualFallback: () => void;
   onSaved: () => void;
   workflow: Workflow;
 }
 
-export function EmailExtractionUnavailable({ onBack }: { onBack: () => void }) {
+export function EmailExtractionUnavailable({
+  isRouteFocused = true,
+  onBack,
+}: {
+  isRouteFocused?: boolean;
+  onBack: () => void;
+}) {
   return (
     <View className="mx-auto mt-8 w-full max-w-2xl">
-      <Text accessibilityRole="header" className="text-3xl font-black text-ink">
+      <PageHeading
+        active={isRouteFocused}
+        className="text-3xl font-black text-ink"
+      >
         Extract from email
-      </Text>
+      </PageHeading>
       <View
         accessibilityLabel="Email extraction requires Connected mode"
         className="mt-6 rounded-2xl border border-line bg-surface px-5 py-5"
@@ -39,6 +51,7 @@ export function EmailExtractionUnavailable({ onBack }: { onBack: () => void }) {
 }
 
 export function EmailExtractionWorkflow({
+  isRouteFocused = true,
   onCancel,
   onManualFallback,
   onSaved,
@@ -54,9 +67,11 @@ export function EmailExtractionWorkflow({
     failure,
     guidance,
     inputErrors,
+    inputValidationFocusRequest,
     phase,
     retryRemainingSeconds,
     reviewErrors,
+    reviewValidationFocusRequest,
     reviewValues,
     save,
     setEmailText,
@@ -67,6 +82,30 @@ export function EmailExtractionWorkflow({
     updateReviewValue,
     warnings,
   } = workflow;
+  const subjectRef = useRef<TextInput>(null);
+  const emailTextRef = useRef<TextInput>(null);
+  const handledInputFocusRequestRef = useRef(0);
+  const subjectId = useId();
+  const subjectLabelId = `${subjectId}-label`;
+  const subjectMessageId = `${subjectId}-message`;
+  const emailId = useId();
+  const emailLabelId = `${emailId}-label`;
+  const emailMessageId = `${emailId}-message`;
+
+  useEffect(() => {
+    if (
+      inputValidationFocusRequest <= 0 ||
+      handledInputFocusRequestRef.current === inputValidationFocusRequest
+    ) {
+      return;
+    }
+    handledInputFocusRequestRef.current = inputValidationFocusRequest;
+    if (inputErrors.subject) {
+      subjectRef.current?.focus();
+    } else if (inputErrors.emailText) {
+      emailTextRef.current?.focus();
+    }
+  }, [inputErrors, inputValidationFocusRequest]);
 
   const clearAndNavigate = (navigate: () => void) => {
     clearSensitiveState();
@@ -78,12 +117,12 @@ export function EmailExtractionWorkflow({
     const saving = phase === 'saving';
     return (
       <View className="mx-auto mt-8 w-full max-w-2xl">
-        <Text
-          accessibilityRole="header"
+        <PageHeading
+          active={isRouteFocused}
           className="text-3xl font-black text-ink"
         >
           Review extracted task
-        </Text>
+        </PageHeading>
         <Text className="mt-2 text-base leading-6 text-slate">
           Review and edit every field. Saving creates a tracking task only—it
           does not cancel, redeem, purchase, contact a merchant, or act for you.
@@ -104,12 +143,12 @@ export function EmailExtractionWorkflow({
         )}
 
         {phase === 'save-failure' && (
-          <View
-            accessibilityLiveRegion="assertive"
-            accessibilityRole="alert"
-            className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3"
-          >
-            <Text className="font-semibold text-risk">
+          <View className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <Text
+              accessibilityLiveRegion="assertive"
+              accessibilityRole="alert"
+              className="font-semibold text-risk"
+            >
               We could not save this task. Your review edits are still here. Try
               Save again.
             </Text>
@@ -122,6 +161,7 @@ export function EmailExtractionWorkflow({
             errors={reviewErrors}
             onChange={updateReviewValue}
             recurrenceRequired
+            validationFocusRequest={reviewValidationFocusRequest}
             values={reviewValues}
           />
         </View>
@@ -161,12 +201,12 @@ export function EmailExtractionWorkflow({
   if (phase === 'no-actionable') {
     return (
       <View className="mx-auto mt-8 w-full max-w-2xl">
-        <Text
-          accessibilityRole="header"
+        <PageHeading
+          active={isRouteFocused}
           className="text-3xl font-black text-ink"
         >
           No clear financial task found
-        </Text>
+        </PageHeading>
         <Text className="mt-3 text-base leading-6 text-slate">
           Clawback could not safely turn this email into a tracking task. Your
           pasted text is still here.
@@ -200,9 +240,12 @@ export function EmailExtractionWorkflow({
 
   return (
     <View className="mx-auto mt-8 w-full max-w-2xl">
-      <Text accessibilityRole="header" className="text-3xl font-black text-ink">
+      <PageHeading
+        active={isRouteFocused}
+        className="text-3xl font-black text-ink"
+      >
         Extract from email
-      </Text>
+      </PageHeading>
       <Text className="mt-2 text-base leading-6 text-slate">
         Paste only the message you want analyzed. It is sent securely for
         extraction, is not stored by Clawback, and every result requires your
@@ -219,12 +262,14 @@ export function EmailExtractionWorkflow({
       )}
 
       {failure && (
-        <View
-          accessibilityLiveRegion="assertive"
-          accessibilityRole="alert"
-          className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3"
-        >
-          <Text className="font-semibold text-risk">{failure.message}</Text>
+        <View className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <Text
+            accessibilityLiveRegion="assertive"
+            accessibilityRole="alert"
+            className="font-semibold text-risk"
+          >
+            {failure.message}
+          </Text>
           {rateLimited && retryBlocked && (
             <Text className="mt-1 text-sm text-slate">
               You can retry in {retryRemainingSeconds} seconds. Editing and
@@ -234,51 +279,86 @@ export function EmailExtractionWorkflow({
         </View>
       )}
 
+      {extracting && (
+        <Text
+          accessibilityLiveRegion="polite"
+          className="mt-6 text-sm font-semibold text-slate"
+          role="status"
+        >
+          Analyzing the pasted email for a financial task…
+        </Text>
+      )}
+
       <View className="mt-7 gap-7">
         <View>
-          <Text className="text-sm font-extrabold text-ink">
+          <Text
+            className="text-sm font-extrabold text-ink"
+            nativeID={subjectLabelId}
+          >
             Subject <Text className="font-semibold text-slate">(optional)</Text>
           </Text>
           <TextInput
             accessibilityHint={inputErrors.subject}
-            accessibilityLabel={`Email subject, optional${inputErrors.subject ? `. Error: ${inputErrors.subject}` : ''}`}
+            accessibilityLabel="Email subject, optional"
             className={`mt-2 min-h-12 rounded-xl border bg-surface px-4 py-3 text-base text-ink web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand ${inputErrors.subject ? 'border-risk' : 'border-line'}`}
             editable={!extracting}
             onChangeText={setSubject}
             placeholder="Renewal reminder"
             placeholderTextColor="#7A8794"
+            ref={subjectRef}
             value={subject}
+            {...(Platform.OS === 'web'
+              ? {
+                  'aria-describedby': subjectMessageId,
+                  'aria-invalid': Boolean(inputErrors.subject),
+                  'aria-labelledby': subjectLabelId,
+                }
+              : {})}
           />
           <CharacterCount
             count={subjectCharacterCount}
             error={inputErrors.subject}
             label="Subject"
             limit={subjectLimit}
+            messageId={subjectMessageId}
           />
         </View>
 
         <View>
-          <Text className="text-sm font-extrabold text-ink">
+          <Text
+            className="text-sm font-extrabold text-ink"
+            nativeID={emailLabelId}
+          >
             Email text{' '}
             <Text className="font-semibold text-slate">(required)</Text>
           </Text>
           <TextInput
             accessibilityHint={inputErrors.emailText}
-            accessibilityLabel={`Email text, required${inputErrors.emailText ? `. Error: ${inputErrors.emailText}` : ''}`}
+            accessibilityLabel="Email text, required"
             className={`mt-2 min-h-64 rounded-xl border bg-surface px-4 py-4 text-base leading-6 text-ink web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand ${inputErrors.emailText ? 'border-risk' : 'border-line'}`}
             editable={!extracting}
             multiline
             onChangeText={setEmailText}
             placeholder="Paste the financial email here"
             placeholderTextColor="#7A8794"
+            ref={emailTextRef}
             textAlignVertical="top"
             value={emailText}
+            {...(Platform.OS === 'web'
+              ? {
+                  'aria-describedby': emailMessageId,
+                  'aria-invalid': Boolean(inputErrors.emailText),
+                  'aria-labelledby': emailLabelId,
+                  'aria-required': true,
+                }
+              : {})}
           />
           <CharacterCount
             count={emailCharacterCount}
             error={inputErrors.emailText}
             label="Email text"
             limit={emailLimit}
+            messageId={emailMessageId}
           />
         </View>
       </View>
@@ -310,17 +390,20 @@ function CharacterCount({
   error,
   label,
   limit,
+  messageId,
 }: {
   count: number;
   error?: string;
   label: string;
   limit: number;
+  messageId: string;
 }) {
   return (
     <View className="mt-1.5 flex-row flex-wrap justify-between gap-2">
       <Text
         accessibilityLiveRegion={error ? 'polite' : 'none'}
         className={`text-sm ${error ? 'font-semibold text-risk' : 'text-slate'}`}
+        nativeID={messageId}
       >
         {error ?? `${label} character count`}
       </Text>

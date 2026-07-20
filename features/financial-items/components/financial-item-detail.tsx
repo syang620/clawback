@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
 import { MutationError } from '@/components/mutation-error';
+import { PageHeading, SectionHeading } from '@/components/page-heading';
 import { ExternalAction } from '@/features/financial-items/components/external-action';
 import { UrgencyBadge } from '@/features/financial-items/components/urgency-badge';
 import { getDeadlinePresentation } from '@/features/financial-items/logic/urgency';
@@ -10,6 +11,7 @@ import { getSafeHttpsUrl } from '@/lib/urls';
 import type { FinancialItem } from '@/types/financial-item';
 
 interface FinancialItemDetailProps {
+  isRouteFocused?: boolean;
   item: FinancialItem;
   isCompleting?: boolean;
   mutationError?: { id: string; message: string };
@@ -25,6 +27,7 @@ function titleCase(value: string): string {
 export function FinancialItemDetail({
   item,
   isCompleting = false,
+  isRouteFocused = true,
   mutationError,
   onComplete,
   onDismissError,
@@ -54,16 +57,22 @@ export function FinancialItemDetail({
       <Text className="mt-5 text-sm font-semibold text-slate">
         {item.provider ?? 'Provider not specified'}
       </Text>
-      <Text className="mt-1 text-3xl font-black leading-9 text-ink">
+      <PageHeading
+        active={isRouteFocused}
+        className="mt-1 text-3xl font-black leading-9 text-ink"
+      >
         {item.title}
-      </Text>
+      </PageHeading>
 
       <View className="mt-6 flex-row flex-wrap gap-8 border-y border-line py-5">
         <View>
           <Text className="text-xs font-bold uppercase tracking-wider text-slate">
             {amountLabel}
           </Text>
-          <Text className="mt-1 text-3xl font-black text-ink">
+          <Text
+            accessibilityLabel={`${formatMoney(amount)} ${amountLabel}`}
+            className="mt-1 text-3xl font-black text-ink"
+          >
             {formatMoney(amount)}
           </Text>
         </View>
@@ -99,12 +108,9 @@ export function FinancialItemDetail({
       >
         {hasSafeActionUrl && (
           <>
-            <Text
-              accessibilityRole="header"
-              className="text-lg font-black text-ink"
-            >
+            <SectionHeading className="text-lg font-black text-ink">
               Next action
-            </Text>
+            </SectionHeading>
             {item.status === 'active' && (
               <Text className="mt-1 text-sm leading-5 text-slate">
                 Open the provider’s website, then mark this task complete.

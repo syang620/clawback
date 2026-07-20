@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { ErrorState } from '@/components/error-state';
 import { LoadingState } from '@/components/loading-state';
@@ -76,11 +76,24 @@ describe('Milestone 01 components', () => {
 
   it('renders the minimal loading and error states', () => {
     const loading = render(<LoadingState />);
-    expect(loading.getByLabelText('Loading financial tasks')).toBeTruthy();
+    expect(
+      loading.getByLabelText('Loading your financial tasks…'),
+    ).toBeTruthy();
     loading.unmount();
 
-    render(<ErrorState />);
-    expect(screen.getByLabelText('Could not load tasks')).toBeTruthy();
+    const retry = jest.fn();
+    render(<ErrorState onRetry={retry} />);
+    expect(
+      screen.getByRole('header', { name: 'Could not load tasks' }),
+    ).toBeTruthy();
+    expect(screen.getByRole('alert')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Please try again. Your information has not been changed.',
+      ),
+    ).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+    expect(retry).toHaveBeenCalledTimes(1);
   });
 
   it('renders a financial item with a text-based next-deadline signal', () => {

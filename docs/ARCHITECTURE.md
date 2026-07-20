@@ -158,6 +158,21 @@ The client must not own:
 - Authorization-bypassing database operations
 - Trust decisions about unvalidated AI output
 
+### Accessibility focus boundary
+
+`AccessibilityFocusProvider` is a presentation-only root context. The active
+route registers one page-heading focus callback; transient status producers can
+request that target or emit a bounded assistive announcement. It stores no
+financial item, form value, route payload, authentication state, or durable
+preference. It does not change repository mutations or navigation decisions.
+
+Validation remains owned by the existing manual-entry and AI-review validators.
+Components receive an incrementing presentation request after failed
+validation, derive the first invalid field from the shared visible field order,
+and focus that existing control. Web label/error IDs and native accessibility
+hints describe the same validator output without creating a second validation
+contract.
+
 ## 6. Backend Responsibilities
 
 Supabase owns:

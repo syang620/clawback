@@ -6,6 +6,12 @@ import { DeadlineField } from '@/features/financial-items/components/deadline-fi
 import { calendarDateToLocalNoon, localDateToCalendarDate } from '@/lib/dates';
 
 let mockPickerProps: DateTimePickerProps | null = null;
+const mockFocusAccessibilityTarget = jest.fn((_target: unknown) => true);
+
+jest.mock('@/components/accessibility-focus', () => ({
+  focusAccessibilityTarget: (target: unknown) =>
+    mockFocusAccessibilityTarget(target),
+}));
 
 jest.mock('@expo/ui/community/datetime-picker', () => {
   const React = jest.requireActual<typeof import('react')>('react');
@@ -43,6 +49,7 @@ describe('Native DeadlineField', () => {
 
   beforeEach(() => {
     mockPickerProps = null;
+    mockFocusAccessibilityTarget.mockClear();
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
       value: 'ios',
@@ -69,6 +76,7 @@ describe('Native DeadlineField', () => {
     expect(screen.getByText('Aug 15, 2026')).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: /Deadline, required/ }));
     expect(localDateToCalendarDate(pickerProps().value)).toBe('2026-08-15');
+    expect(mockFocusAccessibilityTarget).toHaveBeenCalled();
 
     const staged = calendarDateToLocalNoon('2026-09-30') as Date;
     act(() => pickerProps().onValueChange?.(pickerEvent(staged), staged));
@@ -78,6 +86,9 @@ describe('Native DeadlineField', () => {
 
     expect(onChange).not.toHaveBeenCalled();
     expect(screen.getByText('Aug 15, 2026')).toBeTruthy();
+    expect(mockFocusAccessibilityTarget).toHaveBeenLastCalledWith(
+      expect.anything(),
+    );
   });
 
   it('uses the fallback for empty or invalid values without an implicit commit', () => {
@@ -173,7 +184,24 @@ describe('Native DeadlineField', () => {
 
     expect(screen.getByText('Enter a deadline.')).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: /Error: Enter a deadline/ }),
+      screen.getByRole('button', { name: /Deadline, required/ }),
     ).toBeTruthy();
+  });
+
+  it('supports accessibility escape without committing and restores the trigger', () => {
+    const onChange = jest.fn();
+    render(<DeadlineField onChange={onChange} value="2026-08-15" />);
+
+    fireEvent.press(screen.getByRole('button', { name: /Deadline, required/ }));
+    const focusCountAfterOpen = mockFocusAccessibilityTarget.mock.calls.length;
+    act(() => {
+      screen.getByLabelText('Select deadline').props.onAccessibilityEscape();
+    });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByText('Select deadline')).toBeNull();
+    expect(mockFocusAccessibilityTarget.mock.calls.length).toBeGreaterThan(
+      focusCountAfterOpen,
+    );
   });
 });

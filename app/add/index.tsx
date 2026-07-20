@@ -1,4 +1,4 @@
-import { type Href, useRouter } from 'expo-router';
+import { type Href, Stack, useIsFocused, useRouter } from 'expo-router';
 
 import { AppHeader } from '@/components/app-header';
 import { Screen } from '@/components/screen';
@@ -7,6 +7,7 @@ import { useFinancialItems } from '@/features/financial-items/hooks/use-financia
 
 export default function AddRoute() {
   const router = useRouter();
+  const isRouteFocused = useIsFocused();
   const {
     initialization,
     isCreating,
@@ -22,21 +23,25 @@ export default function AddRoute() {
     Object.keys(pendingItemOperations).length > 0;
 
   return (
-    <Screen>
-      <AppHeader />
-      <AddMenu
-        isResettingLocalDemo={isResettingLocalDemo}
-        isLocalDemoResetBlocked={isLocalDemoResetBlocked}
-        mode={mode ?? 'demo'}
-        onCancel={() => router.replace('/')}
-        onExtractEmail={() => router.push('/add/email' as Href)}
-        onResetLocalDemo={async () => {
-          const didReset = await resetLocalDemo();
-          if (didReset) router.replace('/');
-          return didReset;
-        }}
-        onSelect={(kind) => router.push(`/add/manual?kind=${kind}` as Href)}
-      />
-    </Screen>
+    <>
+      <Stack.Screen options={{ title: 'Add a Task | Clawback' }} />
+      <Screen>
+        <AppHeader />
+        <AddMenu
+          isRouteFocused={isRouteFocused}
+          isResettingLocalDemo={isResettingLocalDemo}
+          isLocalDemoResetBlocked={isLocalDemoResetBlocked}
+          mode={mode ?? 'demo'}
+          onCancel={() => router.replace('/')}
+          onExtractEmail={() => router.push('/add/email' as Href)}
+          onResetLocalDemo={async () => {
+            const didReset = await resetLocalDemo();
+            if (didReset) router.replace('/');
+            return didReset;
+          }}
+          onSelect={(kind) => router.push(`/add/manual?kind=${kind}` as Href)}
+        />
+      </Screen>
+    </>
   );
 }

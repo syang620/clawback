@@ -132,7 +132,11 @@ export function SwipeToStrike({
   }, [isRouteFocused, resetLocalGestureState]);
 
   return (
-    <View onLayout={handleLayout} testID={`swipe-measure-${itemId}`}>
+    <View
+      onLayout={handleLayout}
+      role="listitem"
+      testID={`swipe-measure-${itemId}`}
+    >
       {canSwipe ? (
         <Swipeable
           ref={swipeableRef}

@@ -14,6 +14,7 @@ let mockMode: 'demo' | 'connected' = 'demo';
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => children,
+  Stack: { Screen: () => null },
   useIsFocused: () => true,
   usePathname: () => '/add/email',
   useRouter: () => ({ push: jest.fn(), replace: mockReplace }),

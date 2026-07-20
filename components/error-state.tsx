@@ -1,24 +1,32 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { PageHeading } from '@/components/page-heading';
+
 interface ErrorStateProps {
+  active?: boolean;
   message?: string;
   onRetry?: () => void;
   title?: string;
 }
 
 export function ErrorState({
+  active = true,
   message = 'Please try again. Your information has not been changed.',
   onRetry,
   title = 'Could not load tasks',
 }: ErrorStateProps) {
   return (
-    <View
-      accessibilityLabel={title}
-      accessibilityRole="alert"
-      className="rounded-3xl border border-risk/20 bg-red-50 p-6"
-    >
-      <Text className="font-extrabold text-risk">{title}</Text>
-      <Text className="mt-2 text-sm leading-5 text-slate">{message}</Text>
+    <View className="rounded-3xl border border-risk/20 bg-red-50 p-6">
+      <PageHeading active={active} className="font-extrabold text-risk">
+        {title}
+      </PageHeading>
+      <Text
+        accessibilityLiveRegion="assertive"
+        accessibilityRole="alert"
+        className="mt-2 text-sm leading-5 text-slate"
+      >
+        {message}
+      </Text>
       {onRetry && (
         <Pressable
           accessibilityRole="button"

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
+import { PageHeading } from '@/components/page-heading';
 import {
   FinancialItemFields,
   type FinancialItemEditorValues,
@@ -18,6 +19,7 @@ import type {
 } from '@/types/financial-item';
 
 interface ManualFinancialItemFormProps {
+  isRouteFocused?: boolean;
   initialKind?: FinancialItemKind | null;
   onCancel: () => void;
   onDismissSaveError?: () => void;
@@ -27,6 +29,7 @@ interface ManualFinancialItemFormProps {
 
 export function ManualFinancialItemForm({
   initialKind = null,
+  isRouteFocused = true,
   onCancel,
   onDismissSaveError,
   onSave,
@@ -37,9 +40,9 @@ export function ManualFinancialItemForm({
   );
   const [errors, setErrors] = useState<ManualFinancialItemErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [validationFocusRequest, setValidationFocusRequest] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
-  const titleRef = useRef<TextInput>(null);
 
   const updateValue = <Field extends keyof ManualFinancialItemFormValues>(
     field: Field,
@@ -71,7 +74,7 @@ export function ManualFinancialItemForm({
     if (!result.ok) {
       setErrors(result.errors);
       setFormError('Review the highlighted fields before saving.');
-      if (result.errors.title) titleRef.current?.focus();
+      setValidationFocusRequest((current) => current + 1);
       return;
     }
 
@@ -93,20 +96,26 @@ export function ManualFinancialItemForm({
 
   return (
     <View className="mx-auto mt-8 w-full max-w-2xl">
-      <Text accessibilityRole="header" className="text-3xl font-black text-ink">
+      <PageHeading
+        active={isRouteFocused}
+        className="text-3xl font-black text-ink"
+      >
         Create a task
-      </Text>
+      </PageHeading>
       <Text className="mt-2 text-base leading-6 text-slate">
         Saving creates an active reminder. Clawback does not cancel, redeem,
         charge, or perform a financial action.
       </Text>
 
       {displayedFormError && (
-        <View
-          accessibilityLiveRegion="assertive"
-          className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3"
-        >
-          <Text className="font-semibold text-risk">{displayedFormError}</Text>
+        <View className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <Text
+            accessibilityLiveRegion="assertive"
+            accessibilityRole="alert"
+            className="font-semibold text-risk"
+          >
+            {displayedFormError}
+          </Text>
         </View>
       )}
 
@@ -115,7 +124,7 @@ export function ManualFinancialItemForm({
           disabled={isSubmitting}
           errors={errors}
           onChange={updateEditorValue}
-          titleRef={titleRef}
+          validationFocusRequest={validationFocusRequest}
           values={values}
         />
       </View>

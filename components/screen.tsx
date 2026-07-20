@@ -15,7 +15,10 @@ export function Screen({ children, keyboardAware = false }: ScreenProps) {
         contentContainerClassName="grow"
         keyboardShouldPersistTaps={keyboardAware ? 'handled' : 'never'}
       >
-        <View className="mx-auto w-full max-w-5xl flex-1 px-5 pb-12 pt-5 web:px-8">
+        <View
+          className="mx-auto w-full max-w-5xl flex-1 px-5 pb-12 pt-5 web:px-8"
+          role="main"
+        >
           {children}
         </View>
       </ScrollView>

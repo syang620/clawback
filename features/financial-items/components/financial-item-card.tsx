@@ -2,6 +2,7 @@ import { type Href, Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { MutationError } from '@/components/mutation-error';
+import { SectionHeading } from '@/components/page-heading';
 import { UrgencyBadge } from '@/features/financial-items/components/urgency-badge';
 import { getDeadlinePresentation } from '@/features/financial-items/logic/urgency';
 import { formatAbsoluteDate } from '@/lib/dates';
@@ -68,12 +69,16 @@ export function FinancialItemCard({
           <Text className="text-sm font-semibold text-slate">
             {item.provider ?? 'Provider not specified'}
           </Text>
-          <Text className="mt-1 text-xl font-extrabold leading-7 text-ink">
+          <SectionHeading
+            className="mt-1 text-xl font-extrabold leading-7 text-ink"
+            level={3}
+          >
             {item.title}
-          </Text>
+          </SectionHeading>
         </View>
         <View className="items-end">
           <Text
+            accessibilityLabel={`${formatMoney(amount)} ${amountLabel}`}
             className={`text-2xl font-black ${isPerk ? 'text-brand' : 'text-risk'}`}
           >
             {formatMoney(amount)}

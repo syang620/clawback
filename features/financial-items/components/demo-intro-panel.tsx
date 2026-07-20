@@ -1,6 +1,8 @@
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { SectionHeading } from '@/components/page-heading';
+
 export function DemoIntroPanel() {
   return (
     <View
@@ -8,9 +10,9 @@ export function DemoIntroPanel() {
       className="mt-6 flex-row flex-wrap items-center gap-4 rounded-2xl border border-line bg-surface px-4 py-4"
     >
       <View className="min-w-0 flex-1 basis-72">
-        <Text accessibilityRole="header" className="font-extrabold text-ink">
+        <SectionHeading className="font-extrabold text-ink">
           Catch deadlines before money slips away
-        </Text>
+        </SectionHeading>
         <Text className="mt-1 text-sm leading-5 text-slate">
           Track trials, renewals, and unused perks, then strike tasks after you
           act to see what you protected. Clawback tracks actions—it does not

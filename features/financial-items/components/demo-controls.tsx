@@ -1,5 +1,8 @@
-import { useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, Text, type View as ViewType, View } from 'react-native';
+
+import { focusAccessibilityTarget } from '@/components/accessibility-focus';
+import { SectionHeading } from '@/components/page-heading';
 
 interface DemoControlsProps {
   isBlocked?: boolean;
@@ -17,6 +20,20 @@ export function DemoControls({
   const [isConfirming, setIsConfirming] = useState(false);
   const [resetFailed, setResetFailed] = useState(false);
   const submittingRef = useRef(false);
+  const resetButtonRef = useRef<ViewType>(null);
+  const confirmButtonRef = useRef<ViewType>(null);
+  const restoreResetFocusRef = useRef(false);
+
+  useEffect(() => {
+    if (isConfirming) {
+      focusAccessibilityTarget(confirmButtonRef.current);
+      return;
+    }
+    if (restoreResetFocusRef.current) {
+      restoreResetFocusRef.current = false;
+      focusAccessibilityTarget(resetButtonRef.current);
+    }
+  }, [isConfirming]);
 
   if (mode === 'connected') {
     return (
@@ -24,7 +41,9 @@ export function DemoControls({
         accessibilityLabel="Connected demo guidance"
         className="mt-10 border-l-2 border-line py-1 pl-4 pr-2"
       >
-        <Text className="font-extrabold text-ink">Clean demo session</Text>
+        <SectionHeading className="font-extrabold text-ink">
+          Clean demo session
+        </SectionHeading>
         <Text className="mt-2 text-sm leading-5 text-slate">
           Connected records persist for this anonymous session. For a clean
           judge demo, open Clawback in a fresh private or incognito browser
@@ -50,6 +69,8 @@ export function DemoControls({
     try {
       const didReset = await onResetLocalDemo();
       if (!didReset) setResetFailed(true);
+    } catch {
+      setResetFailed(true);
     } finally {
       submittingRef.current = false;
     }
@@ -57,7 +78,9 @@ export function DemoControls({
 
   return (
     <View className="mt-10 rounded-2xl border border-line bg-surface px-5 py-4">
-      <Text className="font-extrabold text-ink">Demo controls</Text>
+      <SectionHeading className="font-extrabold text-ink">
+        Demo controls
+      </SectionHeading>
       {!isConfirming ? (
         <>
           <Text className="mt-2 text-sm leading-5 text-slate">
@@ -70,6 +93,7 @@ export function DemoControls({
             accessibilityState={{ disabled: isBlocked }}
             className="mt-4 min-h-11 justify-center self-start rounded-xl border border-line px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
             disabled={isBlocked}
+            ref={resetButtonRef}
             onPress={() => {
               setResetFailed(false);
               setIsConfirming(true);
@@ -84,12 +108,12 @@ export function DemoControls({
           )}
         </>
       ) : (
-        <View
-          accessibilityLabel="Confirm Local demo reset"
-          accessibilityRole="alert"
-          className="mt-3 rounded-xl border border-risk/20 bg-red-50 p-4"
-        >
-          <Text className="font-extrabold text-ink">
+        <View className="mt-3 rounded-xl border border-risk/20 bg-red-50 p-4">
+          <Text
+            accessibilityLiveRegion="assertive"
+            accessibilityRole="alert"
+            className="font-extrabold text-ink"
+          >
             Replace this Local demo?
           </Text>
           <Text className="mt-2 text-sm leading-5 text-slate">
@@ -106,6 +130,7 @@ export function DemoControls({
               }}
               className="min-h-11 justify-center rounded-xl bg-risk px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-risk"
               disabled={isBlocked || isResetting}
+              ref={confirmButtonRef}
               onPress={() => {
                 void confirmReset();
               }}
@@ -122,6 +147,7 @@ export function DemoControls({
               disabled={isResetting}
               onPress={() => {
                 setResetFailed(false);
+                restoreResetFocusRef.current = true;
                 setIsConfirming(false);
               }}
             >
@@ -129,12 +155,12 @@ export function DemoControls({
             </Pressable>
           </View>
           {resetFailed && (
-            <View
-              accessibilityLiveRegion="assertive"
-              accessibilityRole="alert"
-              className="mt-3"
-            >
-              <Text className="text-sm font-semibold leading-5 text-risk">
+            <View className="mt-3">
+              <Text
+                accessibilityLiveRegion="assertive"
+                accessibilityRole="alert"
+                className="text-sm font-semibold leading-5 text-risk"
+              >
                 We could not reset the Local demo. Nothing was replaced. Try
                 again after any task update finishes.
               </Text>

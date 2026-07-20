@@ -16,7 +16,6 @@ describe('Web DeadlineField', () => {
     const input = renderer!.root.findByType('input');
     const label = renderer!.root.findByType('label');
     expect(input.props).toMatchObject({
-      id: 'financial-item-deadline',
       required: true,
       type: 'date',
       value: '2028-02-29',
@@ -45,7 +44,7 @@ describe('Web DeadlineField', () => {
 
     const input = renderer!.root.findByType('input');
     const error = renderer!.root.findByProps({
-      id: 'financial-item-deadline-error',
+      id: input.props['aria-describedby'],
     });
     expect(input.props.disabled).toBe(true);
     expect(input.props['aria-invalid']).toBe(true);

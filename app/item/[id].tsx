@@ -1,7 +1,13 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  Stack,
+  useIsFocused,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { AppHeader } from '@/components/app-header';
+import { PageHeading } from '@/components/page-heading';
 import { Screen } from '@/components/screen';
 import { FinancialItemDetail } from '@/features/financial-items/components/financial-item-detail';
 import { useCompleteWithFeedback } from '@/features/financial-items/hooks/use-complete-with-feedback';
@@ -10,6 +16,7 @@ import { useFinancialItems } from '@/features/financial-items/hooks/use-financia
 export default function FinancialItemDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const isRouteFocused = useIsFocused();
   const {
     dismissMutationError,
     getItem,
@@ -20,52 +27,65 @@ export default function FinancialItemDetailRoute() {
   const item = typeof id === 'string' ? getItem(id) : null;
 
   return (
-    <Screen>
-      <AppHeader />
-      <Pressable
-        accessibilityLabel="Return Home"
-        accessibilityRole="button"
-        className="mt-6 min-h-11 justify-center self-start rounded-xl px-1 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
-        onPress={() => {
-          router.replace('/');
+    <>
+      <Stack.Screen
+        options={{
+          title: item
+            ? `${item.title} | Clawback`
+            : 'Task Not Found | Clawback',
         }}
-      >
-        <Text className="font-extrabold text-brand">← Home</Text>
-      </Pressable>
-
-      {item ? (
-        <FinancialItemDetail
-          item={item}
-          isCompleting={pendingItemOperations[item.id] === 'complete'}
-          mutationError={mutationErrors.find(
-            (error) =>
-              error.operation === 'complete' && error.itemId === item.id,
-          )}
-          onComplete={completeItem}
-          onDismissError={dismissMutationError}
-          referenceDate={new Date()}
-        />
-      ) : (
-        <View
-          accessibilityLabel="Financial task not found"
-          className="mt-8 items-center rounded-3xl border border-dashed border-line bg-surface px-6 py-12"
+      />
+      <Screen>
+        <AppHeader />
+        <Pressable
+          accessibilityLabel="Return Home"
+          accessibilityRole="link"
+          className="mt-6 min-h-11 justify-center self-start rounded-xl px-1 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
+          onPress={() => {
+            router.replace('/');
+          }}
         >
-          <Text className="text-center text-xl font-extrabold text-ink">
-            We could not find that task.
-          </Text>
-          <Text className="mt-2 max-w-md text-center text-base leading-6 text-slate">
-            It may no longer be part of this sample-data session.
-          </Text>
-          <Pressable
-            accessibilityLabel="Return Home"
-            accessibilityRole="button"
-            className="mt-5 min-h-11 justify-center rounded-xl bg-ink px-5 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
-            onPress={() => router.replace('/')}
+          <Text className="font-extrabold text-brand">← Home</Text>
+        </Pressable>
+
+        {item ? (
+          <FinancialItemDetail
+            item={item}
+            isRouteFocused={isRouteFocused}
+            isCompleting={pendingItemOperations[item.id] === 'complete'}
+            mutationError={mutationErrors.find(
+              (error) =>
+                error.operation === 'complete' && error.itemId === item.id,
+            )}
+            onComplete={completeItem}
+            onDismissError={dismissMutationError}
+            referenceDate={new Date()}
+          />
+        ) : (
+          <View
+            accessibilityLabel="Financial task not found"
+            className="mt-8 items-center rounded-3xl border border-dashed border-line bg-surface px-6 py-12"
           >
-            <Text className="font-extrabold text-white">Return Home</Text>
-          </Pressable>
-        </View>
-      )}
-    </Screen>
+            <PageHeading
+              active={isRouteFocused}
+              className="text-center text-xl font-extrabold text-ink"
+            >
+              We could not find that task.
+            </PageHeading>
+            <Text className="mt-2 max-w-md text-center text-base leading-6 text-slate">
+              It may no longer be part of this sample-data session.
+            </Text>
+            <Pressable
+              accessibilityLabel="Return Home"
+              accessibilityRole="link"
+              className="mt-5 min-h-11 justify-center rounded-xl bg-ink px-5 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
+              onPress={() => router.replace('/')}
+            >
+              <Text className="font-extrabold text-white">Return Home</Text>
+            </Pressable>
+          </View>
+        )}
+      </Screen>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 
 import { AddMenu } from '@/features/financial-items/components/add-menu';
 import { ManualFinancialItemForm } from '@/features/financial-items/components/manual-financial-item-form';
@@ -139,6 +140,41 @@ describe('Milestone 03 Add menu', () => {
 });
 
 describe('Milestone 03 manual-entry form', () => {
+  it('associates web validation errors without duplicating them in labels', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'web',
+    });
+    try {
+      const view = render(
+        <ManualFinancialItemForm
+          onCancel={jest.fn()}
+          onSave={jest.fn().mockResolvedValue(true)}
+        />,
+      );
+
+      fireEvent.press(screen.getByRole('button', { name: 'Save task' }));
+      const title = view.UNSAFE_getByProps({
+        accessibilityLabel: 'Title, required',
+      });
+      const titleError = screen.getByText('Enter a title.');
+      const taskType = view.UNSAFE_getByProps({
+        accessibilityLabel: 'Task type',
+      });
+      expect(title.props.accessibilityLabel).toBe('Title, required');
+      expect(title.props['aria-invalid']).toBe(true);
+      expect(title.props['aria-describedby']).toBe(titleError.props.nativeID);
+      expect(taskType.props['aria-invalid']).toBe(true);
+      expect(taskType.props['aria-required']).toBe(true);
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
+  });
+
   it('emphasizes the type-specific amount while preserving both money fields', () => {
     render(
       <ManualFinancialItemForm

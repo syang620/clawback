@@ -2,12 +2,14 @@ import { type Href, Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { AppHeader } from '@/components/app-header';
+import { PageHeading, SectionHeading } from '@/components/page-heading';
 import { Screen } from '@/components/screen';
 import { formatAbsoluteDate } from '@/lib/dates';
 import { formatMoney } from '@/lib/money';
 import type { FinancialItem } from '@/types/financial-item';
 
 interface ActivityProps {
+  isRouteFocused?: boolean;
   items: FinancialItem[];
 }
 
@@ -16,7 +18,7 @@ function activityTimestamp(item: FinancialItem): number {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-export function Activity({ items }: ActivityProps) {
+export function Activity({ isRouteFocused = true, items }: ActivityProps) {
   const activityItems = items
     .filter((item) => item.status === 'completed' || item.status === 'expired')
     .slice()
@@ -31,7 +33,12 @@ export function Activity({ items }: ActivityProps) {
       <AppHeader />
 
       <View className="mb-4 mt-10">
-        <Text className="text-2xl font-extrabold text-ink">Activity</Text>
+        <PageHeading
+          active={isRouteFocused}
+          className="text-2xl font-extrabold text-ink"
+        >
+          Activity
+        </PageHeading>
         <Text className="mt-1 text-sm leading-5 text-slate">
           A record of tasks you struck and value you protected or reclaimed.
         </Text>
@@ -42,9 +49,9 @@ export function Activity({ items }: ActivityProps) {
           accessibilityLabel="No completed financial tasks"
           className="items-center rounded-3xl border border-dashed border-line bg-surface px-6 py-12"
         >
-          <Text className="text-center text-xl font-extrabold text-ink">
+          <SectionHeading className="text-center text-xl font-extrabold text-ink">
             Your first strike will show up here.
-          </Text>
+          </SectionHeading>
           <Text className="mt-2 max-w-md text-center text-base leading-6 text-slate">
             Tasks you complete will appear here after you take the action
             yourself. Expired tasks also appear here.
@@ -60,7 +67,7 @@ export function Activity({ items }: ActivityProps) {
           </Link>
         </View>
       ) : (
-        <View className="gap-4">
+        <View className="gap-4" role="list">
           {activityItems.map((item) => {
             const amount =
               item.kind === 'perk' ? item.valueCents : item.chargeAmountCents;
@@ -77,16 +84,18 @@ export function Activity({ items }: ActivityProps) {
               <View
                 key={item.id}
                 className="rounded-3xl border border-line bg-surface p-5"
+                role="listitem"
               >
                 <Text className="text-sm font-semibold text-slate">
                   {item.provider ?? 'Provider not specified'}
                 </Text>
                 <View className="mt-1 flex-row flex-wrap items-start justify-between gap-4">
-                  <Text className="min-w-0 flex-1 text-xl font-extrabold leading-7 text-ink">
+                  <SectionHeading className="min-w-0 flex-1 text-xl font-extrabold leading-7 text-ink">
                     {item.title}
-                  </Text>
+                  </SectionHeading>
                   <View className="items-end">
                     <Text
+                      accessibilityLabel={`${formatMoney(amount)} ${amountLabel}`}
                       className={`text-2xl font-black ${
                         item.status === 'completed'
                           ? 'text-positive'

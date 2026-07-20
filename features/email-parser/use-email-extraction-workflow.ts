@@ -69,6 +69,8 @@ export function useEmailExtractionWorkflow({
   const [emailText, setEmailTextState] = useState('');
   const [subject, setSubjectState] = useState('');
   const [inputErrors, setInputErrors] = useState<EmailInputErrors>({});
+  const [inputValidationFocusRequest, setInputValidationFocusRequest] =
+    useState(0);
   const [guidance, setGuidance] = useState<string | null>(null);
   const [failure, setFailure] = useState<EmailExtractionFailure | null>(null);
   const [reviewValues, setReviewValues] = useState<EmailReviewValues | null>(
@@ -77,6 +79,8 @@ export function useEmailExtractionWorkflow({
   const [reviewErrors, setReviewErrors] = useState<ManualFinancialItemErrors>(
     {},
   );
+  const [reviewValidationFocusRequest, setReviewValidationFocusRequest] =
+    useState(0);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [retryRemainingSeconds, setRetryRemainingSeconds] = useState(0);
@@ -121,10 +125,12 @@ export function useEmailExtractionWorkflow({
     setEmailTextState('');
     setSubjectState('');
     setInputErrors({});
+    setInputValidationFocusRequest(0);
     setGuidance(null);
     setFailure(null);
     setReviewValues(null);
     setReviewErrors({});
+    setReviewValidationFocusRequest(0);
     setWarnings([]);
     setConfidence(null);
     setPhase('input');
@@ -246,6 +252,7 @@ export function useEmailExtractionWorkflow({
     }
     if (Object.keys(errors).length > 0) {
       setInputErrors(errors);
+      setInputValidationFocusRequest((current) => current + 1);
       setGuidance(null);
       setPhase('input');
       return false;
@@ -262,6 +269,7 @@ export function useEmailExtractionWorkflow({
     setInputErrors({});
     setReviewValues(null);
     setReviewErrors({});
+    setReviewValidationFocusRequest(0);
     setWarnings([]);
     setConfidence(null);
     setPhase('extracting');
@@ -348,6 +356,7 @@ export function useEmailExtractionWorkflow({
     setGuidance(null);
     setReviewValues(null);
     setReviewErrors({});
+    setReviewValidationFocusRequest(0);
     setWarnings([]);
     setConfidence(null);
     setPhase('input');
@@ -360,6 +369,7 @@ export function useEmailExtractionWorkflow({
     const validation = validateEmailReview(reviewValues, confidence);
     if (!validation.ok) {
       setReviewErrors(validation.errors);
+      setReviewValidationFocusRequest((current) => current + 1);
       setPhase('review');
       return false;
     }
@@ -412,9 +422,11 @@ export function useEmailExtractionWorkflow({
     failure,
     guidance,
     inputErrors,
+    inputValidationFocusRequest,
     phase,
     retryRemainingSeconds,
     reviewErrors,
+    reviewValidationFocusRequest,
     reviewValues,
     save,
     setEmailText,

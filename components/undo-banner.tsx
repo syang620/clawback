@@ -1,10 +1,16 @@
-import { Pressable, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Pressable, Text, type View as ViewType, View } from 'react-native';
 
+import {
+  focusAccessibilityTarget,
+  useAccessibilityFocus,
+} from '@/components/accessibility-focus';
 import { MutationError } from '@/components/mutation-error';
 import { useFinancialItems } from '@/features/financial-items/hooks/use-financial-items';
 import { formatMoney } from '@/lib/money';
 
 export function UndoBanner() {
+  const { announce, focusCurrentPageHeading } = useAccessibilityFocus();
   const {
     dismissMutationError,
     dismissUndo,
@@ -13,6 +19,19 @@ export function UndoBanner() {
     pendingItemOperations,
     undoLastCompletion,
   } = useFinancialItems();
+  const undoButtonRef = useRef<ViewType>(null);
+  const focusedCompletionTokenRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (
+      lastCompletion &&
+      focusedCompletionTokenRef.current !== lastCompletion.token
+    ) {
+      focusedCompletionTokenRef.current = lastCompletion.token;
+      focusAccessibilityTarget(undoButtonRef.current);
+    }
+  }, [lastCompletion]);
+
   if (!lastCompletion) return null;
 
   const { item } = lastCompletion;
@@ -28,13 +47,13 @@ export function UndoBanner() {
   );
 
   return (
-    <View
-      accessibilityLiveRegion="polite"
-      accessibilityRole="alert"
-      className="absolute inset-x-4 bottom-5 z-50 mx-auto max-w-xl rounded-2xl bg-ink px-4 py-3 shadow-lg"
-    >
+    <View className="absolute inset-x-4 bottom-5 z-50 mx-auto max-w-xl rounded-2xl bg-ink px-4 py-3 shadow-lg">
       <View className="flex-row flex-wrap items-center gap-3">
-        <Text className="min-w-[180px] flex-1 basis-60 text-sm font-semibold leading-5 text-white">
+        <Text
+          accessibilityLiveRegion="polite"
+          accessibilityRole="alert"
+          className="min-w-[180px] flex-1 basis-60 text-sm font-semibold leading-5 text-white"
+        >
           {message}
         </Text>
         <View className="flex-row flex-wrap items-center gap-2">
@@ -45,8 +64,13 @@ export function UndoBanner() {
             accessibilityState={{ busy: isRestoring, disabled: isRestoring }}
             className="min-h-11 justify-center rounded-xl bg-white px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-white"
             disabled={isRestoring}
+            ref={undoButtonRef}
             onPress={() => {
-              void undoLastCompletion();
+              void undoLastCompletion().then((restored) => {
+                if (!restored) return;
+                focusCurrentPageHeading();
+                announce(`Restored ${item.title} to active tasks.`);
+              });
             }}
           >
             <Text className="font-extrabold text-ink">

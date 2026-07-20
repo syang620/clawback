@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useIsFocused, useRouter } from 'expo-router';
+import { Stack, useIsFocused, useRouter } from 'expo-router';
 
 import { AppHeader } from '@/components/app-header';
 import { Screen } from '@/components/screen';
@@ -13,14 +13,21 @@ import { createDefaultFinancialEmailParser } from '@/services/email-parser/servi
 
 export default function EmailExtractionRoute() {
   const router = useRouter();
+  const isRouteFocused = useIsFocused();
   const { mode } = useFinancialItems();
 
   if (mode !== 'connected') {
     return (
-      <Screen>
-        <AppHeader />
-        <EmailExtractionUnavailable onBack={() => router.replace('/add')} />
-      </Screen>
+      <>
+        <Stack.Screen options={{ title: 'Extract Email | Clawback' }} />
+        <Screen>
+          <AppHeader />
+          <EmailExtractionUnavailable
+            isRouteFocused={isRouteFocused}
+            onBack={() => router.replace('/add')}
+          />
+        </Screen>
+      </>
     );
   }
 
@@ -46,20 +53,24 @@ function ConnectedEmailExtractionRoute() {
   };
 
   return (
-    <Screen keyboardAware>
-      <AppHeader />
-      <EmailExtractionWorkflow
-        onCancel={() => {
-          dismissCreateError();
-          router.replace('/');
-        }}
-        onManualFallback={() => {
-          dismissCreateError();
-          router.replace('/add');
-        }}
-        onSaved={() => router.replace('/')}
-        workflow={workflow}
-      />
-    </Screen>
+    <>
+      <Stack.Screen options={{ title: 'Extract Email | Clawback' }} />
+      <Screen keyboardAware>
+        <AppHeader />
+        <EmailExtractionWorkflow
+          isRouteFocused={isFocused}
+          onCancel={() => {
+            dismissCreateError();
+            router.replace('/');
+          }}
+          onManualFallback={() => {
+            dismissCreateError();
+            router.replace('/add');
+          }}
+          onSaved={() => router.replace('/')}
+          workflow={workflow}
+        />
+      </Screen>
+    </>
   );
 }

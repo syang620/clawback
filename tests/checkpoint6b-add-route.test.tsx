@@ -9,6 +9,8 @@ let mockPendingItemOperations: Record<string, 'complete' | 'restore'> = {};
 
 jest.mock('expo-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => children,
+  Stack: { Screen: () => null },
+  useIsFocused: () => true,
   usePathname: () => '/add',
   useRouter: () => ({
     push: jest.fn(),

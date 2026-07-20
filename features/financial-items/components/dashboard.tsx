@@ -2,6 +2,7 @@ import { Text, View } from 'react-native';
 
 import { AppHeader } from '@/components/app-header';
 import { MetricCard } from '@/components/metric-card';
+import { PageHeading, SectionHeading } from '@/components/page-heading';
 import { Screen } from '@/components/screen';
 import { DemoIntroPanel } from '@/features/financial-items/components/demo-intro-panel';
 import { FinancialItemList } from '@/features/financial-items/components/financial-item-list';
@@ -40,6 +41,9 @@ export function Dashboard({
   return (
     <Screen>
       <AppHeader />
+      <PageHeading active={isRouteFocused} visuallyHidden>
+        Home
+      </PageHeading>
 
       {showPristineIntro && <DemoIntroPanel />}
 
@@ -68,9 +72,9 @@ export function Dashboard({
       </View>
 
       <View className="mb-4 mt-10">
-        <Text className="text-2xl font-extrabold text-ink">
+        <SectionHeading className="text-2xl font-extrabold text-ink">
           Your next moves
-        </Text>
+        </SectionHeading>
         <Text className="mt-1 text-sm leading-5 text-slate">
           Prioritized by deadline and financial impact. Dates are shown as
           calendar dates.

@@ -1,5 +1,5 @@
 import { type Href, Link, usePathname } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 
 import { AppIdentity } from '@/components/app-identity';
 import { useFinancialItems } from '@/features/financial-items/hooks/use-financial-items';
@@ -18,10 +18,15 @@ function NavigationLink({ href, label }: NavigationLinkProps) {
     <Link href={href as Href} asChild>
       <Pressable
         accessibilityRole="link"
-        accessibilityState={{ selected: isActive }}
+        accessibilityState={
+          Platform.OS === 'web' ? undefined : { selected: isActive }
+        }
         className={`min-h-11 justify-center rounded-xl px-3 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand ${
           isActive ? 'bg-blue-50' : 'bg-transparent'
         }`}
+        {...(Platform.OS === 'web' && isActive
+          ? ({ 'aria-current': 'page' } as const)
+          : {})}
       >
         <Text
           className={`text-sm font-extrabold ${isActive ? 'text-brand' : 'text-slate'}`}
@@ -43,6 +48,7 @@ export function AppHeader() {
       <View
         accessibilityLabel="Primary navigation"
         className="flex-row gap-1 self-start rounded-2xl border border-line bg-surface p-1"
+        role="navigation"
       >
         <NavigationLink href="/" label="Home" />
         <NavigationLink href="/activity" label="Activity" />

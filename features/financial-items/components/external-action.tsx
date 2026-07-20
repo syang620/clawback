@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Pressable, Text, View } from 'react-native';
+import {
+  Linking,
+  Pressable,
+  Text,
+  type View as ViewType,
+  View,
+} from 'react-native';
 
+import { focusAccessibilityTarget } from '@/components/accessibility-focus';
+import { SectionHeading } from '@/components/page-heading';
 import { getSafeHttpsUrl } from '@/lib/urls';
 
 interface ExternalActionProps {
@@ -30,6 +38,7 @@ export function ExternalAction({ actionUrl, provider }: ExternalActionProps) {
   const [isOpening, setIsOpening] = useState(false);
   const openingRef = useRef(false);
   const mountedRef = useRef(true);
+  const openerRef = useRef<ViewType>(null);
   const safeActionUrl = getSafeHttpsUrl(actionUrl);
   const providerName = provider?.trim() || null;
 
@@ -47,7 +56,9 @@ export function ExternalAction({ actionUrl, provider }: ExternalActionProps) {
         accessibilityLabel="No action link saved"
         className="min-w-0 py-1 md:flex-1"
       >
-        <Text className="font-extrabold text-slate">No action link saved</Text>
+        <SectionHeading className="font-extrabold text-slate">
+          No action link saved
+        </SectionHeading>
         <Text className="mt-1 text-sm leading-5 text-slate">
           Open the provider’s app or website manually.
         </Text>
@@ -79,6 +90,7 @@ export function ExternalAction({ actionUrl, provider }: ExternalActionProps) {
         accessibilityState={{ busy: isOpening, disabled: isOpening }}
         className="min-h-11 items-center justify-center rounded-xl bg-brand px-5 py-3 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
         disabled={isOpening}
+        ref={openerRef}
         onPress={() => {
           void openActionPage();
         }}
@@ -98,12 +110,12 @@ export function ExternalAction({ actionUrl, provider }: ExternalActionProps) {
         Opens externally. Clawback does not take the action for you.
       </Text>
       {hasOpenError && (
-        <View
-          accessibilityLiveRegion="assertive"
-          accessibilityRole="alert"
-          className="mt-3 flex-row flex-wrap items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3"
-        >
-          <Text className="min-w-[160px] flex-1 text-sm font-semibold leading-5 text-risk">
+        <View className="mt-3 flex-row flex-wrap items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <Text
+            accessibilityLiveRegion="assertive"
+            accessibilityRole="alert"
+            className="min-w-[160px] flex-1 text-sm font-semibold leading-5 text-risk"
+          >
             We could not open this external action page. Try again when you are
             ready.
           </Text>
@@ -111,7 +123,11 @@ export function ExternalAction({ actionUrl, provider }: ExternalActionProps) {
             accessibilityLabel="Dismiss action page error"
             accessibilityRole="button"
             className="min-h-11 justify-center rounded-lg px-2 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-risk"
-            onPress={() => setHasOpenError(false)}
+            onPress={() => {
+              openingRef.current = false;
+              setHasOpenError(false);
+              focusAccessibilityTarget(openerRef.current);
+            }}
           >
             <Text className="font-extrabold text-risk">Dismiss</Text>
           </Pressable>

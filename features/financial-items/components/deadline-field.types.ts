@@ -1,3 +1,7 @@
+export interface DeadlineFieldHandle {
+  focus: () => void;
+}
+
 export interface DeadlineFieldProps {
   disabled?: boolean;
   error?: string;

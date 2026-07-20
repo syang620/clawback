@@ -1,4 +1,9 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  Stack,
+  useIsFocused,
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
 
 import { AppHeader } from '@/components/app-header';
 import { Screen } from '@/components/screen';
@@ -9,6 +14,7 @@ import { isFinancialItemKind } from '@/features/financial-items/logic/manual-ent
 export default function ManualFinancialItemRoute() {
   const { kind } = useLocalSearchParams<{ kind?: string | string[] }>();
   const router = useRouter();
+  const isRouteFocused = useIsFocused();
   const { createItem, dismissMutationError, mutationErrors } =
     useFinancialItems();
   const kindValue = Array.isArray(kind) ? kind[0] : kind;
@@ -18,22 +24,26 @@ export default function ManualFinancialItemRoute() {
   );
 
   return (
-    <Screen keyboardAware>
-      <AppHeader />
-      <ManualFinancialItemForm
-        initialKind={initialKind}
-        onCancel={() => router.replace('/')}
-        onDismissSaveError={
-          createError ? () => dismissMutationError(createError.id) : undefined
-        }
-        onSave={async (input) => {
-          const createdItem = await createItem(input);
-          if (!createdItem) return false;
-          router.replace('/');
-          return true;
-        }}
-        saveError={createError}
-      />
-    </Screen>
+    <>
+      <Stack.Screen options={{ title: 'Create a Task | Clawback' }} />
+      <Screen keyboardAware>
+        <AppHeader />
+        <ManualFinancialItemForm
+          initialKind={initialKind}
+          isRouteFocused={isRouteFocused}
+          onCancel={() => router.replace('/')}
+          onDismissSaveError={
+            createError ? () => dismissMutationError(createError.id) : undefined
+          }
+          onSave={async (input) => {
+            const createdItem = await createItem(input);
+            if (!createdItem) return false;
+            router.replace('/');
+            return true;
+          }}
+          saveError={createError}
+        />
+      </Screen>
+    </>
   );
 }

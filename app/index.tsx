@@ -1,4 +1,4 @@
-import { usePathname } from 'expo-router';
+import { Stack, useIsFocused } from 'expo-router';
 
 import { Dashboard } from '@/features/financial-items/components/dashboard';
 import { useCompleteWithFeedback } from '@/features/financial-items/hooks/use-complete-with-feedback';
@@ -13,18 +13,21 @@ export default function DashboardRoute() {
     pendingItemOperations,
   } = useFinancialItems();
   const completeItem = useCompleteWithFeedback();
-  const isRouteFocused = usePathname() === '/';
+  const isRouteFocused = useIsFocused();
 
   return (
-    <Dashboard
-      isRouteFocused={isRouteFocused}
-      items={items}
-      mutationErrors={mutationErrors}
-      onComplete={completeItem}
-      onDismissError={dismissMutationError}
-      pendingItemOperations={pendingItemOperations}
-      referenceDate={new Date()}
-      showPristineIntro={isPristineDemoState}
-    />
+    <>
+      <Stack.Screen options={{ title: 'Home | Clawback' }} />
+      <Dashboard
+        isRouteFocused={isRouteFocused}
+        items={items}
+        mutationErrors={mutationErrors}
+        onComplete={completeItem}
+        onDismissError={dismissMutationError}
+        pendingItemOperations={pendingItemOperations}
+        referenceDate={new Date()}
+        showPristineIntro={isPristineDemoState}
+      />
+    </>
   );
 }

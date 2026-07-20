@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 
 import { AppHeader } from '@/components/app-header';
 
@@ -23,5 +24,30 @@ describe('Checkpoint 4B mode indicator', () => {
     view.rerender(<AppHeader />);
     expect(screen.getByText('Connected')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Connected' })).toBeNull();
+  });
+
+  it('marks the active web link with aria-current without tab selection state', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      value: 'web',
+    });
+    try {
+      render(<AppHeader />);
+
+      const navigation = screen.getByLabelText('Primary navigation');
+      const home = screen.getByRole('link', { name: 'Home' });
+      const activity = screen.getByRole('link', { name: 'Activity' });
+      expect(navigation.props.role).toBe('navigation');
+      expect(home.props['aria-current']).toBe('page');
+      expect(home.props.accessibilityState.selected).toBeUndefined();
+      expect(home.props['aria-selected']).toBeUndefined();
+      expect(activity.props['aria-current']).toBeUndefined();
+    } finally {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    }
   });
 });

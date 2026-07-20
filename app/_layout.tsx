@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { AccessibilityFocusProvider } from '@/components/accessibility-focus';
 import { InitializationScreen } from '@/components/initialization-screen';
 import { UndoBanner } from '@/components/undo-banner';
 import {
@@ -34,10 +35,12 @@ function FinancialItemsApplication() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <FinancialItemsProvider>
-        <StatusBar style="dark" />
-        <FinancialItemsApplication />
-      </FinancialItemsProvider>
+      <AccessibilityFocusProvider>
+        <FinancialItemsProvider>
+          <StatusBar style="dark" />
+          <FinancialItemsApplication />
+        </FinancialItemsProvider>
+      </AccessibilityFocusProvider>
     </GestureHandlerRootView>
   );
 }

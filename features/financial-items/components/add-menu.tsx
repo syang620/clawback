@@ -1,9 +1,11 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { PageHeading } from '@/components/page-heading';
 import { DemoControls } from '@/features/financial-items/components/demo-controls';
 import type { FinancialItemKind } from '@/types/financial-item';
 
 interface AddMenuProps {
+  isRouteFocused?: boolean;
   isLocalDemoResetBlocked?: boolean;
   isResettingLocalDemo?: boolean;
   onCancel: () => void;
@@ -36,6 +38,7 @@ const choices: Array<{
 ];
 
 export function AddMenu({
+  isRouteFocused = true,
   isLocalDemoResetBlocked = false,
   isResettingLocalDemo = false,
   mode,
@@ -46,9 +49,12 @@ export function AddMenu({
 }: AddMenuProps) {
   return (
     <View className="mx-auto mt-8 w-full max-w-2xl">
-      <Text accessibilityRole="header" className="text-3xl font-black text-ink">
+      <PageHeading
+        active={isRouteFocused}
+        className="text-3xl font-black text-ink"
+      >
         Add a financial task
-      </Text>
+      </PageHeading>
       <Text className="mt-2 text-base leading-6 text-slate">
         Choose what you want to track. You can review every detail before
         saving.

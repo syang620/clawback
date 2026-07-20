@@ -27,6 +27,7 @@ import type {
 
 const rawEmail =
   'Example renews for $0 on 2026-08-15. Manage it at https://example.com/account';
+const fixedNow = () => new Date('2026-07-19T12:00:00.000Z');
 
 function selectReviewDeadline(value: string) {
   const date = calendarDateToLocalNoon(value);
@@ -93,10 +94,11 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
 
   it('validates input limits and exposes accessible character counts', async () => {
     const parser = parserResolving(actionable());
-    renderWorkflow({ parser });
+    const { capture } = renderWorkflow({ parser });
 
     fireEvent.press(screen.getByRole('button', { name: 'Extract task' }));
     expect(screen.getByText('Paste the email text to continue.')).toBeTruthy();
+    expect(capture.current.inputValidationFocusRequest).toBe(1);
 
     fireEvent.changeText(
       screen.getByLabelText(/Email subject, optional/),
@@ -115,6 +117,7 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
       screen.getByLabelText('Email text: 20001 of 20000 characters'),
     ).toBeTruthy();
     expect(parser.extract).not.toHaveBeenCalled();
+    expect(capture.current.inputValidationFocusRequest).toBe(2);
   });
 
   it('extracts, requires explicit recurrence, preserves zero, and saves email provenance', async () => {
@@ -137,6 +140,7 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
     expect(screen.getByText('Choose whether this task repeats.')).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Save task' }));
     expect(createItem).not.toHaveBeenCalled();
+    expect(capture.current.reviewValidationFocusRequest).toBe(1);
     expect(
       screen.getByText('Choose a recurrence, including One time.'),
     ).toBeTruthy();
@@ -255,7 +259,10 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
           ),
         ),
     };
-    const { capture, unmount } = renderWorkflow({ parser });
+    const { capture, unmount } = renderWorkflow({
+      now: () => new Date(),
+      parser,
+    });
     enterEmail();
     fireEvent.press(screen.getByRole('button', { name: 'Extract task' }));
     await screen.findByText('Retry in 2s');
@@ -375,6 +382,7 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
         isFocused={false}
         onCancel={rendered.onCancel}
         onManualFallback={rendered.onManualFallback}
+        now={rendered.now}
         onSaved={rendered.onSaved}
         parser={parser}
       />,
@@ -469,6 +477,7 @@ function Harness({
   capture,
   createItem,
   isFocused,
+  now,
   onCancel,
   onManualFallback,
   onSaved,
@@ -477,6 +486,7 @@ function Harness({
   capture: { current: Workflow };
   createItem: jest.Mock;
   isFocused: boolean;
+  now: () => Date;
   onCancel: jest.Mock;
   onManualFallback: jest.Mock;
   onSaved: jest.Mock;
@@ -487,7 +497,7 @@ function Harness({
       input: CreateFinancialItemInput,
     ) => Promise<FinancialItem | null>,
     isFocused,
-    now: () => new Date(),
+    now,
     parser,
     resolveTimeZone: () => 'America/New_York',
   });
@@ -508,6 +518,7 @@ function Harness({
 function renderWorkflow({
   createItem = jest.fn().mockResolvedValue({ id: 'created' }),
   isFocused = true,
+  now = fixedNow,
   onCancel = jest.fn(),
   onManualFallback = jest.fn(),
   onSaved = jest.fn(),
@@ -515,6 +526,7 @@ function renderWorkflow({
 }: {
   createItem?: jest.Mock;
   isFocused?: boolean;
+  now?: () => Date;
   onCancel?: jest.Mock;
   onManualFallback?: jest.Mock;
   onSaved?: jest.Mock;
@@ -526,6 +538,7 @@ function renderWorkflow({
       capture={capture}
       createItem={createItem}
       isFocused={isFocused}
+      now={now}
       onCancel={onCancel}
       onManualFallback={onManualFallback}
       onSaved={onSaved}
@@ -538,6 +551,7 @@ function renderWorkflow({
     createItem,
     onCancel,
     onManualFallback,
+    now,
     onSaved,
   };
 }

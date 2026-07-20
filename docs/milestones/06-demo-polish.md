@@ -110,7 +110,10 @@ A judge can understand Clawback quickly, complete the core workflow without assi
 
 ### Checkpoint 6C — Accessibility, responsive behavior, and cleanup
 
-- Deferred until 6B acceptance.
+- 6C-1: semantics and focus implementation, followed by an owner keyboard-only
+  web and iOS VoiceOver gate.
+- 6C-2: reduced motion, responsive/zoom reliability, warning cleanup, and only
+  measured performance or dead-code corrections.
 
 ### Checkpoint 6D — Deployment and final acceptance
 
@@ -144,7 +147,9 @@ To be filled in after implementation.
 
 Checkpoint 6A accepted on 2026-07-19 after automated verification, owner visual
 and behavioral review, and an isolated pristine Local-demo panel check.
-Checkpoint 6B status is recorded below. Checkpoints 6C and 6D have not started.
+Checkpoint 6B status is recorded below. Checkpoint 6C-1 implementation and its
+compressed owner keyboard-only and VoiceOver acceptance are recorded below.
+Checkpoint 6C-2 and Checkpoint 6D have not started.
 
 ### Files Changed
 
@@ -210,8 +215,9 @@ Checkpoint 6B status is recorded below. Checkpoints 6C and 6D have not started.
 ### Status
 
 Checkpoint 6B was accepted by the owner on 2026-07-19 after deterministic
-verification and the manual observations below. Checkpoints 6C and 6D have not
-started.
+verification and the manual observations below. At that acceptance boundary,
+Checkpoints 6C and 6D had not started; current 6C-1 work is recorded separately
+below.
 
 ### Implemented Behavior
 
@@ -315,4 +321,111 @@ started.
 
 ### Commit
 
-- Pending
+- `a13875d` — `feat: complete Milestone 06 checkpoint 6B`
+
+## Checkpoint 6C-1 Implementation Record
+
+### Status
+
+Semantics and focus implementation completed on 2026-07-19. Checkpoint 6C-1
+was accepted by the owner on 2026-07-20 after the compressed critical smoke
+test and deterministic verification recorded below. The acceptance gate was
+intentionally reduced for the July 21 submission deadline. Checkpoint 6C-2 has
+not started.
+
+### Implemented Behavior
+
+- Every route now supplies a concise document title and one focusable page
+  heading. Route activation and extraction phase changes focus the current page
+  heading without adding a visible onboarding step.
+- The application exposes main, primary-navigation, list, list-item, page
+  heading, section heading, link, button, radio, checked, disabled, busy, and
+  current-page semantics without changing navigation or domain behavior.
+- Manual creation and AI review share one ordered first-invalid-field focus
+  contract. Email input validation uses the same request-based pattern. Web
+  fields associate labels, requirements, hints, and errors through stable IDs;
+  native fields retain concise labels and error hints.
+- Loading and extraction progress use polite status announcements. Safe error
+  text owns the alert announcement while Retry, Dismiss, and other recovery
+  controls remain separate interactive elements.
+- A new completion focuses Undo. Successful Undo focuses the current route page
+  heading and announces exactly `Restored [task title] to active tasks.` Failed
+  Undo, Dismiss, and expiry do not move page focus or claim restoration.
+- Local reset confirmation focuses its destructive confirmation action; Cancel
+  restores focus to Reset Local demo. Unexpected reset rejection is mapped to
+  existing safe inline recovery without exposing an unhandled raw error.
+- Deadline modal open focuses its title on iOS. Cancel, explicit Use date,
+  Android dismissal, and iOS accessibility escape preserve the existing date
+  contract and restore the trigger when it remains enabled.
+- Dismissing an external-open failure restores focus to the preserved,
+  revalidated opener. URL validation, duplicate-open locking, Retry, and
+  persistence behavior are unchanged.
+- The task and Activity collections expose list structure; task titles and
+  quiet empty/unavailable headings participate in the heading hierarchy.
+  Amount labels include their financial meaning. Unknown routes now provide a
+  page heading and a semantic Home recovery destination.
+
+### Automated Verification
+
+- Final post-acceptance deterministic matrix rerun on 2026-07-20: passed.
+- TypeScript: passed.
+- Lint: passed.
+- Formatting: passed.
+- Full Jest suite: passed, 42 suites and 280 tests.
+- Jest open-handle pass: passed, 42 suites and 280 tests.
+- Expo dependency compatibility check: passed.
+- Expo web export: passed, 1,180 modules in the final post-acceptance run.
+- `git diff --check`: passed.
+- Tests cover focus registration, page/section semantics, current navigation,
+  ordered validation focus, web error association, reset focus and safe
+  rejection, deadline modal focus restoration and accessibility escape,
+  external-error Dismiss focus, Undo success/failure focus behavior, alert and
+  status separation, and not-found recovery.
+- Normal deterministic commands did not invoke GPT-5.6 or hosted services.
+- Expo export emitted the known command-environment `NO_COLOR`/`FORCE_COLOR`
+  warning. It is classified as development-tool environment output, not an
+  application defect, and was not globally suppressed.
+- The first July 20 rerun exposed one test-only wall-clock dependency in the
+  email workflow's asserted reference date. The harness now injects a fixed
+  date, while the rate-limit countdown retains its explicit advancing clock.
+  This changed no extraction or product behavior; the complete matrix then
+  passed.
+
+### Owner Acceptance — Compressed Critical Smoke Test
+
+- Web keyboard: passed for Home-to-Add navigation, one manual-form workflow,
+  first-invalid-field focus, completion focus moving to Undo, and successful
+  Undo returning focus to the current page heading.
+- iOS VoiceOver: passed for the Home heading and primary navigation, one task
+  card, Complete and Undo, manual-form required fields, and deadline-modal open,
+  Cancel, and trigger-focus restoration.
+- Browser developer console: explicitly inspected; no application warnings or
+  errors were observed.
+- Metro/Expo terminal output: explicitly inspected; no application warnings or
+  errors were observed.
+- Hosted GPT-5.6 extraction calls: zero. No concrete extraction-review defect
+  required live reproduction.
+- Submission acceptance blockers: none. No core control was unreachable; no
+  focus trap, removed-content focus, repeated focus loop, unusable required
+  field, serious application warning, or main-demo regression was found in the
+  exercised paths.
+
+### Deferred Manual Observations
+
+The following were not exercised in the compressed owner pass and are not
+claimed as passed: browser Back/Forward focus nuances; extraction loading and
+review announcements; full extraction-review keyboard and VoiceOver coverage;
+failed Undo focus recovery; Dismiss and automatic-expiry focus behavior; reset
+confirmation focus; external-action error focus; not-found focus; Activity,
+startup, and rare error-state VoiceOver paths; exhaustive task-card, metric,
+amount, urgency, and announcement wording review. These are nonblocking
+submission-time deferrals; deterministic coverage remains recorded above.
+
+### Deferred to 6C-2
+
+- Reduced-motion behavior and manual reduced-motion evidence.
+- The full 320/375–390/430/tablet/wide/200%-zoom and long-content matrix.
+- iOS keyboard/scrolling stress review, warning classification, and any small
+  cleanup justified by measured behavior.
+- No performance change is included in 6C-1; the planning baseline did not
+  demonstrate a material rerender, ranking, startup, or bundle problem.

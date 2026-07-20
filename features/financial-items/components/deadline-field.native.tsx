@@ -1,8 +1,26 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { useEffect, useState } from 'react';
-import { Modal, Platform, Pressable, Text, View } from 'react-native';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  type Text as TextType,
+  type View as ViewType,
+  View,
+} from 'react-native';
 
-import type { DeadlineFieldProps } from '@/features/financial-items/components/deadline-field.types';
+import { focusAccessibilityTarget } from '@/components/accessibility-focus';
+import type {
+  DeadlineFieldHandle,
+  DeadlineFieldProps,
+} from '@/features/financial-items/components/deadline-field.types';
 import {
   calendarDateToLocalNoon,
   formatCalendarDateDisplay,
@@ -12,23 +30,44 @@ import {
 
 const PICKER_HEIGHT = 330;
 
-export function DeadlineField({
-  disabled = false,
-  error,
-  fallbackDate,
-  onChange,
-  value,
-}: DeadlineFieldProps) {
+export const DeadlineField = forwardRef<
+  DeadlineFieldHandle,
+  DeadlineFieldProps
+>(function DeadlineField(
+  { disabled = false, error, fallbackDate, onChange, value },
+  ref,
+) {
   const [isOpen, setIsOpen] = useState(false);
   const [stagedDate, setStagedDate] = useState(() =>
     localNoonForDate(fallbackDate),
   );
   const displayValue = formatCalendarDateDisplay(value) ?? value.trim();
   const isAndroid = Platform.OS === 'android';
+  const triggerRef = useRef<ViewType>(null);
+  const modalHeadingRef = useRef<TextType>(null);
+  const restoreTriggerFocusRef = useRef(false);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => focusAccessibilityTarget(triggerRef.current),
+  }));
 
   useEffect(() => {
-    if (disabled) setIsOpen(false);
+    if (disabled) {
+      restoreTriggerFocusRef.current = false;
+      setIsOpen(false);
+    }
   }, [disabled]);
+
+  useEffect(() => {
+    if (isOpen && !isAndroid) {
+      focusAccessibilityTarget(modalHeadingRef.current);
+      return;
+    }
+    if (!isOpen && restoreTriggerFocusRef.current && !disabled) {
+      restoreTriggerFocusRef.current = false;
+      focusAccessibilityTarget(triggerRef.current);
+    }
+  }, [disabled, isAndroid, isOpen]);
 
   const openPicker = () => {
     if (disabled) return;
@@ -43,6 +82,13 @@ export function DeadlineField({
     const nextValue = localDateToCalendarDate(date);
     if (!nextValue) return;
     onChange(nextValue);
+    restoreTriggerFocusRef.current = true;
+    setIsOpen(false);
+  };
+
+  const cancelPicker = () => {
+    if (disabled) return;
+    restoreTriggerFocusRef.current = true;
     setIsOpen(false);
   };
 
@@ -55,7 +101,7 @@ export function DeadlineField({
         accessibilityHint={
           error ?? 'Opens a native calendar. The selected date has no time.'
         }
-        accessibilityLabel={`Deadline, required${displayValue ? `, ${displayValue}` : ', no date selected'}${error ? `. Error: ${error}` : ''}`}
+        accessibilityLabel={`Deadline, required${displayValue ? `, ${displayValue}` : ', no date selected'}`}
         accessibilityRole="button"
         accessibilityState={{ disabled }}
         className={`mt-2 min-h-12 flex-row items-center justify-between gap-3 rounded-xl border bg-surface px-4 py-3 ${
@@ -63,6 +109,7 @@ export function DeadlineField({
         }`}
         disabled={disabled}
         onPress={openPicker}
+        ref={triggerRef}
       >
         <Text
           className={
@@ -86,7 +133,7 @@ export function DeadlineField({
         <DateTimePicker
           mode="date"
           negativeButton={{ label: 'Cancel' }}
-          onDismiss={() => setIsOpen(false)}
+          onDismiss={cancelPicker}
           onValueChange={(_event, selectedDate) => commitDate(selectedDate)}
           positiveButton={{ label: 'Use date' }}
           presentation="dialog"
@@ -97,9 +144,7 @@ export function DeadlineField({
       {!isAndroid && (
         <Modal
           animationType="fade"
-          onRequestClose={() => {
-            if (!disabled) setIsOpen(false);
-          }}
+          onRequestClose={cancelPicker}
           presentationStyle="overFullScreen"
           transparent
           visible={isOpen}
@@ -109,10 +154,12 @@ export function DeadlineField({
               accessibilityLabel="Select deadline"
               accessibilityViewIsModal
               className="mx-auto w-full max-w-lg rounded-3xl bg-surface p-5"
+              onAccessibilityEscape={cancelPicker}
             >
               <Text
                 accessibilityRole="header"
                 className="text-xl font-black text-ink"
+                ref={modalHeadingRef}
               >
                 Select deadline
               </Text>
@@ -133,7 +180,7 @@ export function DeadlineField({
                   accessibilityState={{ disabled }}
                   className="min-h-11 justify-center rounded-xl px-4"
                   disabled={disabled}
-                  onPress={() => setIsOpen(false)}
+                  onPress={cancelPicker}
                 >
                   <Text className="font-extrabold text-slate">Cancel</Text>
                 </Pressable>
@@ -154,4 +201,4 @@ export function DeadlineField({
       )}
     </View>
   );
-}
+});

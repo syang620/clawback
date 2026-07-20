@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { AppIdentity } from '@/components/app-identity';
 import { ErrorState } from '@/components/error-state';
 import { LoadingState } from '@/components/loading-state';
+import { PageHeading } from '@/components/page-heading';
 import { Screen } from '@/components/screen';
 import type { FinancialItemsInitializationState } from '@/features/financial-items/hooks/use-financial-items';
 
@@ -69,7 +70,10 @@ export function InitializationScreen({
       <AppIdentity />
       <View className="mt-8">
         {loadingMessage ? (
-          <LoadingState message={loadingMessage} />
+          <>
+            <PageHeading visuallyHidden>Clawback startup</PageHeading>
+            <LoadingState message={loadingMessage} />
+          </>
         ) : (
           <ErrorState
             message={errorPresentation?.message}

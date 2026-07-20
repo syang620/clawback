@@ -518,6 +518,25 @@ The web version should feel intentionally designed, not merely stretched mobile 
 - Reduced-motion support where feasible
 - Error messages associated with fields
 
+Checkpoint 6C-1 establishes one page heading per route and subordinate section
+and task headings. Page activation moves focus to that route heading. Form
+validation moves focus to the first invalid field in visible form order, and
+web labels and error descriptions use stable associations rather than
+duplicating error text in control names. Loading uses polite status output;
+safe error text is announced independently from its Retry or Dismiss control.
+
+Completion focuses the eight-second Undo action. A successful Undo returns
+focus to the current page heading and announces that the named task was
+restored; failed Undo, Dismiss, and expiry do not move focus. Canceling the
+Local-demo reset confirmation returns focus to Reset Local demo. Dismissing an
+external-open error returns focus to the still-validated opener. The native
+deadline modal focuses its title and restores the field trigger after Cancel or
+commit when the trigger remains enabled.
+
+These deterministic semantics do not substitute for the required owner
+keyboard-only and VoiceOver walkthroughs. Reduced-motion and the comprehensive
+responsive/zoom matrix remain Checkpoint 6C-2 work.
+
 ## 20. Demo Data Design
 
 Seeded tasks should demonstrate multiple product concepts:

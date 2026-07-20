@@ -7,6 +7,8 @@ const mockReplace = jest.fn();
 const mockGetItem = jest.fn();
 
 jest.mock('expo-router', () => ({
+  Stack: { Screen: () => null },
+  useIsFocused: () => true,
   useLocalSearchParams: () => ({ id: 'founderscard-trial' }),
   useRouter: () => ({ replace: mockReplace }),
 }));
@@ -43,7 +45,7 @@ describe('Financial task detail route navigation', () => {
   it('returns Home directly without relying on navigation history', () => {
     render(<FinancialItemDetailRoute />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Return Home' }));
+    fireEvent.press(screen.getAllByRole('link', { name: 'Return Home' })[0]);
 
     expect(mockReplace).toHaveBeenCalledTimes(1);
     expect(mockReplace).toHaveBeenCalledWith('/');
@@ -53,7 +55,7 @@ describe('Financial task detail route navigation', () => {
     mockGetItem.mockReturnValue(null);
     render(<FinancialItemDetailRoute />);
 
-    const returnHomeButtons = screen.getAllByRole('button', {
+    const returnHomeButtons = screen.getAllByRole('link', {
       name: 'Return Home',
     });
     fireEvent.press(returnHomeButtons[returnHomeButtons.length - 1]);

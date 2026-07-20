@@ -9,8 +9,10 @@ export function LoadingState({
 }: LoadingStateProps) {
   return (
     <View
-      accessibilityLabel="Loading financial tasks"
+      accessibilityLabel={message}
+      accessibilityLiveRegion="polite"
       className="items-center p-8"
+      role="status"
     >
       <ActivityIndicator color="#315EFB" />
       <Text className="mt-3 text-center text-sm text-slate">{message}</Text>
