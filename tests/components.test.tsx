@@ -6,8 +6,12 @@ import { createDemoItems } from '@/constants/demo-data';
 import { Dashboard } from '@/features/financial-items/components/dashboard';
 import { FinancialItemCard } from '@/features/financial-items/components/financial-item-card';
 
+const mockLink = jest.fn(
+  ({ children }: { children: React.ReactNode }) => children,
+);
+
 jest.mock('expo-router', () => ({
-  Link: ({ children }: { children: React.ReactNode }) => children,
+  Link: (props: { children: React.ReactNode }) => mockLink(props),
   usePathname: () => '/',
 }));
 
@@ -41,6 +45,31 @@ describe('Milestone 01 components', () => {
       screen.getByText('Nothing is slipping through the cracks.'),
     ).toBeTruthy();
     expect(screen.getByLabelText('No active financial tasks')).toBeTruthy();
+  });
+
+  it('shows one accessible secondary Add link for a pristine demo', () => {
+    const items = createDemoItems(new Date('2026-07-16T00:00:00.000Z'));
+    render(
+      <Dashboard
+        items={items}
+        onComplete={jest.fn().mockResolvedValue(true)}
+        referenceDate={new Date('2026-07-16T00:00:00.000Z')}
+        showPristineIntro
+      />,
+    );
+
+    expect(
+      screen.getByRole('header', {
+        name: 'Catch deadlines before money slips away',
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText(/does not cancel or redeem for you/)).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: 'Add a financial task' }),
+    ).toBeTruthy();
+    expect(mockLink).toHaveBeenCalledWith(
+      expect.objectContaining({ href: '/add' }),
+    );
   });
 
   it('renders the minimal loading and error states', () => {

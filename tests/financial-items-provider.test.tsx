@@ -56,6 +56,7 @@ function ProviderHarness({
     <>
       <Text>{`Phase ${context.initialization.phase}`}</Text>
       <Text>{`Mode ${context.mode ?? 'none'}`}</Text>
+      <Text>{`Pristine ${context.isPristineDemoState}`}</Text>
       <Text>{`Items ${context.items.length}`}</Text>
       <Text>{`Available ${metrics.availableCents}`}</Text>
       <Text>{`At risk ${metrics.atRiskCents}`}</Text>
@@ -112,12 +113,14 @@ describe('Checkpoint 4B shared financial-item state', () => {
     expect(feedback).toHaveBeenCalledTimes(1);
     expect(screen.getByText('At risk 0')).toBeTruthy();
     expect(screen.getByText('Clawed back 59500')).toBeTruthy();
+    expect(screen.getByText('Pristine false')).toBeTruthy();
 
     await act(async () => {
       await context.undoLastCompletion();
     });
     expect(screen.getByText('At risk 59500')).toBeTruthy();
     expect(screen.getByText('Clawed back 0')).toBeTruthy();
+    expect(screen.getByText('Pristine false')).toBeTruthy();
   });
 
   it('adds only the committed manual item and updates metrics and ranking', async () => {
@@ -142,6 +145,7 @@ describe('Checkpoint 4B shared financial-item state', () => {
     expect(screen.getByText('Items 4')).toBeTruthy();
     expect(screen.getByText('Available 7700')).toBeTruthy();
     expect(screen.getByText('First Use new credit')).toBeTruthy();
+    expect(screen.getByText('Pristine false')).toBeTruthy();
   });
 
   it('passes validated email provenance through the provider unchanged', async () => {
@@ -203,6 +207,64 @@ describe('Checkpoint 4B shared financial-item state', () => {
       ),
     ).toBeTruthy();
     expect(feedback).not.toHaveBeenCalled();
+    expect(screen.getByText('Pristine true')).toBeTruthy();
+  });
+
+  it('does not restore pristine visibility when the route remounts after Undo', async () => {
+    const repository = new LocalFinancialItemsRepository({
+      initialItems: createDemoItems(referenceDate),
+      clock: () => new Date('2026-07-17T12:00:00.000Z'),
+    });
+    const dependencies = dependenciesFor(repository);
+    let context = undefined as unknown as ReturnType<typeof useFinancialItems>;
+
+    function RouteProbe({ visible }: { visible: boolean }) {
+      const value = useFinancialItems();
+      context = value;
+      return visible ? (
+        <Text>{`Route pristine ${value.isPristineDemoState}`}</Text>
+      ) : (
+        <Text>Route away</Text>
+      );
+    }
+
+    const view = render(
+      <FinancialItemsProvider
+        dependencies={dependencies}
+        referenceDate={referenceDate}
+      >
+        <RouteProbe visible />
+      </FinancialItemsProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByText('Route pristine true')).toBeTruthy(),
+    );
+
+    await act(async () => {
+      await context.completeItem('founderscard-trial');
+      await context.undoLastCompletion();
+    });
+    expect(screen.getByText('Route pristine false')).toBeTruthy();
+
+    view.rerender(
+      <FinancialItemsProvider
+        dependencies={dependencies}
+        referenceDate={referenceDate}
+      >
+        <RouteProbe visible={false} />
+      </FinancialItemsProvider>,
+    );
+    expect(screen.getByText('Route away')).toBeTruthy();
+
+    view.rerender(
+      <FinancialItemsProvider
+        dependencies={dependencies}
+        referenceDate={referenceDate}
+      >
+        <RouteProbe visible />
+      </FinancialItemsProvider>,
+    );
+    expect(screen.getByText('Route pristine false')).toBeTruthy();
   });
 
   it('keeps Undo visible during a late restore and grants a fresh window after failure', async () => {

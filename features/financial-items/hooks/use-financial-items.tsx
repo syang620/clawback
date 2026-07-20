@@ -9,6 +9,10 @@ import {
   useState,
 } from 'react';
 
+import {
+  isCanonicalDemoState,
+  nextDemoSessionInteractionState,
+} from '@/features/financial-items/logic/demo-state';
 import { resolveSupabaseEnvironment } from '@/lib/supabase/environment';
 import type { SupabaseEnvironment } from '@/lib/supabase/environment';
 import { LocalFinancialItemsRepository } from '@/services/financial-items/local-financial-items-repository';
@@ -76,6 +80,7 @@ interface FinancialItemsContextValue {
   getItem: (id: string) => FinancialItem | null;
   initialization: FinancialItemsInitializationState;
   isCreating: boolean;
+  isPristineDemoState: boolean;
   items: FinancialItem[];
   lastCompletion: CompletionRecord | null;
   mode: FinancialItemsMode | null;
@@ -178,6 +183,8 @@ export function FinancialItemsProvider({
     Record<string, FinancialItemPendingOperation>
   >({});
   const [isCreating, setIsCreating] = useState(false);
+  const [hasMeaningfullyInteractedThisSession, setHasMeaningfullyInteracted] =
+    useState(false);
 
   const itemsRef = useRef<FinancialItem[]>([]);
   const repositoryRef = useRef<FinancialItemsRepository | null>(null);
@@ -459,6 +466,12 @@ export function FinancialItemsProvider({
         const nextItems = [...itemsRef.current, createdItem];
         itemsRef.current = nextItems;
         setItems(nextItems);
+        setHasMeaningfullyInteracted((current) =>
+          nextDemoSessionInteractionState(
+            current,
+            'meaningful-mutation-succeeded',
+          ),
+        );
         return createdItem;
       } catch {
         publishMutationError(claim, 'create');
@@ -514,6 +527,12 @@ export function FinancialItemsProvider({
         };
         setCompletionRecord(record);
         scheduleUndoDismissal(record);
+        setHasMeaningfullyInteracted((current) =>
+          nextDemoSessionInteractionState(
+            current,
+            'meaningful-mutation-succeeded',
+          ),
+        );
         return true;
       } catch {
         publishMutationError(claim, 'complete', id);
@@ -612,6 +631,14 @@ export function FinancialItemsProvider({
     [items],
   );
 
+  const isPristineDemoState = useMemo(
+    () =>
+      initialization.phase === 'ready' &&
+      !hasMeaningfullyInteractedThisSession &&
+      isCanonicalDemoState(items, referenceDateRef.current),
+    [hasMeaningfullyInteractedThisSession, initialization.phase, items],
+  );
+
   const value = useMemo<FinancialItemsContextValue>(
     () => ({
       completeItem,
@@ -621,6 +648,7 @@ export function FinancialItemsProvider({
       getItem,
       initialization,
       isCreating,
+      isPristineDemoState,
       items,
       lastCompletion,
       mode,
@@ -637,6 +665,7 @@ export function FinancialItemsProvider({
       getItem,
       initialization,
       isCreating,
+      isPristineDemoState,
       items,
       lastCompletion,
       mode,

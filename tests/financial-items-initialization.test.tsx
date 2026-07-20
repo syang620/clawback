@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
+import { createDemoItems } from '@/constants/demo-data';
 import {
   FinancialItemsProvider,
   type FinancialItemsProviderDependencies,
@@ -39,6 +40,7 @@ function Harness({
     <>
       <Text>{`Phase ${context.initialization.phase}`}</Text>
       <Text>{`Mode ${context.mode ?? 'none'}`}</Text>
+      <Text>{`Pristine ${context.isPristineDemoState}`}</Text>
       <Text>{`Titles ${context.items.map((item) => item.title).join(',')}`}</Text>
     </>
   );
@@ -65,6 +67,7 @@ describe('Checkpoint 4B initialization', () => {
       expect(screen.getByText('Phase configuration-error')).toBeTruthy(),
     );
     expect(screen.getByText('Mode none')).toBeTruthy();
+    expect(screen.getByText('Pristine false')).toBeTruthy();
     expect(dependencies.createLocalRepository).not.toHaveBeenCalled();
     expect(context).not.toBeNull();
   });
@@ -158,6 +161,7 @@ describe('Checkpoint 4B initialization', () => {
         expect(screen.getByText(`Phase ${phase}`)).toBeTruthy(),
       );
       expect(screen.getByText('Mode none')).toBeTruthy();
+      expect(screen.getByText('Pristine false')).toBeTruthy();
       expect(dependencies.createLocalRepository).not.toHaveBeenCalled();
     },
   );
@@ -181,6 +185,63 @@ describe('Checkpoint 4B initialization', () => {
       expect(screen.getByText('Phase auth-error')).toBeTruthy(),
     );
     expect(screen.getByText('Mode none')).toBeTruthy();
+    expect(screen.getByText('Pristine false')).toBeTruthy();
     expect(dependencies.createLocalRepository).not.toHaveBeenCalled();
+  });
+
+  it('shows pristine state only after a complete Connected seed set loads', async () => {
+    const referenceDate = new Date('2026-07-16T00:00:00.000Z');
+    const connectedItems = createDemoItems(referenceDate).map(
+      (item, index) => ({
+        ...item,
+        id: `550e8400-e29b-41d4-a716-44665544000${index}`,
+        userId: '550e8400-e29b-41d4-a716-446655440099',
+        createdAt: '2026-07-16T14:00:00.000Z',
+        updatedAt: '2026-07-16T14:00:00.000Z',
+      }),
+    );
+    const repository = repositoryWith(connectedItems);
+    const dependencies: FinancialItemsProviderDependencies = {
+      environment: connectedEnvironment,
+      createLocalRepository: jest.fn(),
+      createConnectedRuntime: jest.fn().mockResolvedValue({ repository }),
+    };
+
+    render(
+      <FinancialItemsProvider
+        dependencies={dependencies}
+        referenceDate={referenceDate}
+      >
+        <Harness capture={() => undefined} />
+      </FinancialItemsProvider>,
+    );
+
+    expect(screen.getByText('Pristine false')).toBeTruthy();
+    await waitFor(() => expect(screen.getByText('Phase ready')).toBeTruthy());
+    expect(screen.getByText('Pristine true')).toBeTruthy();
+  });
+
+  it('excludes a fully loaded partial Connected seed set', async () => {
+    const referenceDate = new Date('2026-07-16T00:00:00.000Z');
+    const repository = repositoryWith(
+      createDemoItems(referenceDate).slice(0, 2),
+    );
+    const dependencies: FinancialItemsProviderDependencies = {
+      environment: connectedEnvironment,
+      createLocalRepository: jest.fn(),
+      createConnectedRuntime: jest.fn().mockResolvedValue({ repository }),
+    };
+
+    render(
+      <FinancialItemsProvider
+        dependencies={dependencies}
+        referenceDate={referenceDate}
+      >
+        <Harness capture={() => undefined} />
+      </FinancialItemsProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText('Phase ready')).toBeTruthy());
+    expect(screen.getByText('Pristine false')).toBeTruthy();
   });
 });

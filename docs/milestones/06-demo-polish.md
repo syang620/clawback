@@ -79,6 +79,37 @@ A judge can understand Clawback quickly, complete the core workflow without assi
 11. Verify from a clean browser session.
 12. Update docs.
 
+## Checkpoint Plan
+
+### Checkpoint 6A — Audit, first-run clarity, and reset contract
+
+- Derive canonical state from the existing shared seed factory and source
+  semantics without changing the database or domain enum.
+- Keep canonical data comparison separate from a transient, provider-scoped
+  meaningful-interaction marker.
+- Show one compact, inline Home explanation only after a complete canonical
+  load and before a successful create or completion in the current provider
+  session.
+- Keep the marker sticky across Undo, route remount, and initialization retry.
+- Define the explicit Local-reset transition that clears the marker, while
+  deferring all reset controls and dataset replacement to Checkpoint 6B.
+- Make metric wrapping intentional through responsive styling without runtime
+  viewport state.
+- Complete deterministic coverage before manual width, zoom, keyboard, and
+  unfamiliar-person review.
+
+### Checkpoint 6B — States and interaction polish
+
+- Deferred until 6A acceptance.
+
+### Checkpoint 6C — Accessibility, responsive behavior, and cleanup
+
+- Deferred until 6B acceptance.
+
+### Checkpoint 6D — Deployment and final acceptance
+
+- Deferred until 6C acceptance.
+
 ## Verification
 
 ```bash
@@ -105,23 +136,60 @@ To be filled in after implementation.
 
 ### Status
 
-Not started
+Checkpoint 6A accepted on 2026-07-19 after automated verification, owner visual
+and behavioral review, and an isolated pristine Local-demo panel check.
+Checkpoints 6B through 6D have not started.
 
 ### Files Changed
 
-- Pending
+- Canonical demo-state and transient session-interaction logic
+- Financial-items provider pristine-state derivation
+- Compact Home explanation and responsive metric layout
+- Focused canonical-state, provider, initialization, and component tests
+- Design, architecture, milestone, and build documentation
 
 ### Verification Results
 
-- Pending
+- Focused 6A Jest tests: passed, 4 suites and 38 tests
+- TypeScript: passed
+- Lint: passed
+- Formatting: passed
+- Full Jest suite: passed, 29 suites and 217 tests
+- Expo web export: passed, 1,370 modules in the final verification run
+- `git diff --check`: passed
 
 ### Manual Review
 
-- Pending
+- iPhone 17 Pro Simulator at a typical phone width: passed. Available and At
+  Risk remained readable side by side, Clawed Back retained its full-width
+  hierarchy, no horizontal clipping was visible, the first task remained easy
+  to discover, and task controls remained clear.
+- Wide desktop web: passed. Metrics used three equal cards, spacing and
+  hierarchy appeared intentional, no horizontal overflow was visible, and task
+  information and controls remained readable.
+- Successful create and completion hid the pristine panel: passed. Undo and
+  route navigation did not restore it, and loading/error states did not show
+  it.
+- The owner-supplied modified-dataset views correctly omitted the panel because
+  their records were noncanonical.
+- Pristine canonical Local-demo session on iPhone 17 Pro Simulator: passed in
+  an isolated no-configuration audit launch. The panel was compact and visually
+  secondary, its outlined Add CTA did not compete with the primary Add
+  navigation, the first task remained visibly discoverable in the initial
+  viewport, and the copy clearly stated that Clawback does not cancel or redeem
+  automatically.
+- Owner first-run comprehension and hierarchy review: accepted for Checkpoint
+  6A. A separate timed unfamiliar-person study was not required for this
+  checkpoint.
+- VoiceOver full-flow review, comprehensive keyboard-only review, and the
+  comprehensive 200% browser-zoom matrix remain deferred to Checkpoint 6C.
 
 ### Known Limitations
 
-- Pending
+- The reset-facing marker transition is defined and tested, but Checkpoint 6B
+  reset controls and dataset restoration are intentionally not implemented.
+- Loading/error polish, external-link recovery, broader accessibility cleanup,
+  and public deployment remain deferred to their approved checkpoints.
 
 ### Commit
 
@@ -129,4 +197,4 @@ Not started
 
 ### Build Log Updated
 
-- [ ] `docs/BUILD_LOG.md`
+- [x] `docs/BUILD_LOG.md`

@@ -5,8 +5,13 @@ import { useCompleteWithFeedback } from '@/features/financial-items/hooks/use-co
 import { useFinancialItems } from '@/features/financial-items/hooks/use-financial-items';
 
 export default function DashboardRoute() {
-  const { dismissMutationError, items, mutationErrors, pendingItemOperations } =
-    useFinancialItems();
+  const {
+    dismissMutationError,
+    isPristineDemoState,
+    items,
+    mutationErrors,
+    pendingItemOperations,
+  } = useFinancialItems();
   const completeItem = useCompleteWithFeedback();
   const isRouteFocused = usePathname() === '/';
 
@@ -19,6 +24,7 @@ export default function DashboardRoute() {
       onDismissError={dismissMutationError}
       pendingItemOperations={pendingItemOperations}
       referenceDate={new Date()}
+      showPristineIntro={isPristineDemoState}
     />
   );
 }

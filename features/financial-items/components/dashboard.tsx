@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { AppHeader } from '@/components/app-header';
 import { MetricCard } from '@/components/metric-card';
 import { Screen } from '@/components/screen';
+import { DemoIntroPanel } from '@/features/financial-items/components/demo-intro-panel';
 import { FinancialItemList } from '@/features/financial-items/components/financial-item-list';
 import type {
   FinancialItemsMutationError,
@@ -21,6 +22,7 @@ interface DashboardProps {
     Record<string, FinancialItemPendingOperation>
   >;
   referenceDate: Date;
+  showPristineIntro?: boolean;
 }
 
 export function Dashboard({
@@ -31,6 +33,7 @@ export function Dashboard({
   onDismissError,
   pendingItemOperations,
   referenceDate,
+  showPristineIntro = false,
 }: DashboardProps) {
   const metrics = calculateDashboardMetrics(items);
 
@@ -38,20 +41,25 @@ export function Dashboard({
     <Screen>
       <AppHeader />
 
+      {showPristineIntro && <DemoIntroPanel />}
+
       <View className="mt-8 flex-row flex-wrap gap-3">
         <MetricCard
+          className="min-w-[150px] basis-[150px]"
           description="Unused value in active perks"
           label="Available"
           tone="available"
           valueCents={metrics.availableCents}
         />
         <MetricCard
+          className="min-w-[150px] basis-[150px]"
           description="Potential charges to prevent"
           label="At Risk"
           tone="risk"
           valueCents={metrics.atRiskCents}
         />
         <MetricCard
+          className="basis-full md:min-w-[150px] md:basis-[150px]"
           description="Value protected or reclaimed"
           label="Clawed Back"
           tone="protected"

@@ -966,3 +966,69 @@ Not created. No commit, tag, or push was performed.
 ### Model Evaluation
 
 See `docs/MODEL_EVALUATION.md`.
+
+---
+
+## 2026-07-19 — Milestone 06 Checkpoint 6A First-Run Clarity
+
+### Objective
+
+Add deterministic first-run clarity and intentional metric responsiveness
+without implementing demo reset controls or expanding the established product
+architecture.
+
+### Codex Contribution
+
+- Confirmed that the existing domain and both seed paths already use
+  `source: demo`; no source enum, database schema, or bootstrap change was
+  introduced.
+- Added a pure, order-independent comparison against the existing
+  `createDemoItems` factory. It compares user-visible domain and provenance
+  fields while ignoring IDs, ownership, and generated timestamps.
+- Added a provider-scoped, in-memory meaningful-interaction marker. Successful
+  create and completion make it sticky; failed mutations, Undo, route remount,
+  and initialization retry do not clear it.
+- Defined and tested the Checkpoint 6B reset-facing transition that clears the
+  marker only after a successful explicit Local reset, without adding reset UI
+  or replacement behavior in 6A.
+- Added a compact Home explanation with one secondary Add link and explicit
+  copy that Clawback does not cancel or redeem automatically.
+- Made metric wrapping content-driven so narrow and zoom-constrained layouts
+  can fall back safely while medium layouts retain three readable cards.
+- Added deterministic coverage for local and Connected identities, ordering,
+  metadata, partial and changed seeds, successful/failed mutations, Undo,
+  route remount, reset contract, accessible CTA semantics, and unchanged
+  dashboard metrics.
+
+### Scope Boundaries
+
+- No reset controls, external-link recovery, deployment configuration, broad
+  accessibility cleanup, live extraction, database change, dependency change,
+  commit, tag, or push.
+
+### Verification
+
+- Focused 6A Jest tests: passed, 4 suites and 38 tests
+- TypeScript, lint, and formatting: passed
+- Full Jest suite: passed, 29 suites and 217 tests
+- Expo web export: passed, 1,370 modules in the final verification run
+- iPhone 17 Pro Simulator owner review: passed for typical-phone metric layout,
+  hierarchy, task discoverability and controls, overflow, meaningful-mutation
+  panel hiding, sticky hiding after Undo/navigation, and loading/error exclusion
+- Wide desktop owner review: passed for three equal metric cards, intentional
+  spacing and hierarchy, readable task content and controls, and no visible
+  overflow
+- Isolated pristine Local-demo review on iPhone 17 Pro Simulator: passed. The
+  panel was compact and secondary, its outlined CTA did not compete with the
+  primary Add navigation, the first task remained visible at the bottom of the
+  initial viewport, and the no-automatic-action limitation was explicit.
+- Checkpoint 6A: accepted by the owner on 2026-07-19
+
+### Deferred Review
+
+- VoiceOver full-flow review, comprehensive keyboard-only review, and the
+  comprehensive 200% browser-zoom matrix remain assigned to Checkpoint 6C.
+
+### Commit
+
+Pending. No commit, tag, or push was performed.

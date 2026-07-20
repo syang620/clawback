@@ -449,6 +449,17 @@ Use local component state for:
 - Modal visibility
 - Parsing progress
 
+`FinancialItemsProvider` also owns one transient, in-memory indication that a
+successful create or completion occurred during the mounted application
+session. Together with a pure comparison against `createDemoItems`, it controls
+the pristine Home explanation. The comparison ignores generated identity and
+timestamp metadata, is independent of row order, and is evaluated only after a
+complete successful load. Undo and initialization retry do not clear the
+session indication. It is never written to browser storage, Supabase, route
+state, or another durable preference. Checkpoint 6B's explicit Local-demo
+reset is the only planned operation that may restore canonical data and clear
+the indication together.
+
 ### Shared Application State
 
 Use a focused provider or custom hook only for:

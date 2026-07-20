@@ -138,6 +138,18 @@ Required copy concepts:
 - Catch trial deadlines
 - Strike tasks before money disappears
 
+Checkpoint 6A implements this as a compact, nonblocking Home panel rather than
+a separate onboarding route. It appears only when the fully loaded collection
+matches the current canonical seed set and the user has not successfully
+created or completed a task during the mounted application session. The
+session marker is transient and is not stored. Undo does not make the panel
+reappear; only the explicit Local-demo reset planned for Checkpoint 6B may
+restore the seeds and clear the marker together.
+
+The panel has one secondary Add link and states that Clawback tracks actions
+but does not cancel or redeem automatically. Loading, error, empty, and partial
+seed states are not first-run states.
+
 ### Home Dashboard
 
 Required areas:
@@ -448,6 +460,13 @@ At wider widths:
 - Avoid stretching task cards across the entire viewport
 - Use hover and focus states
 - Ensure keyboard navigation
+
+Dashboard metrics use content-driven flex wrapping rather than JavaScript
+viewport state. Very narrow and zoom-constrained layouts may use one column.
+Typical phone widths may pair Available and At Risk while placing Clawed Back
+on the next row. Medium and wide layouts may show three equal cards. Readable
+content and no horizontal overflow take precedence over retaining any specific
+column count.
 
 The web version should feel intentionally designed, not merely stretched mobile UI.
 
