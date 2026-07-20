@@ -457,8 +457,30 @@ timestamp metadata, is independent of row order, and is evaluated only after a
 complete successful load. Undo and initialization retry do not clear the
 session indication. It is never written to browser storage, Supabase, route
 state, or another durable preference. Checkpoint 6B's explicit Local-demo
-reset is the only planned operation that may restore canonical data and clear
-the indication together.
+reset is the only operation that may restore canonical data and clear the
+indication together.
+
+Checkpoint 6B implements reset as a Local-only provider transition. The
+provider refuses reset while a create, complete, or restore write is in flight,
+while initialization is active, or while another reset is active. Initialization
+also refuses to start during reset. The Add UI disables reset for known pending
+create, complete, restore, and reset state, while these provider refs remain
+authoritative. The provider constructs a fresh local repository with its
+reference date, loads and validates the canonical `createDemoItems` result
+off-screen, and only then swaps the repository and visible collection together.
+The same successful transition clears Undo, mutation presentation state, and
+the session-interaction marker. If preparation fails, the existing repository,
+items, derived presentation, Undo, errors, and marker remain unchanged.
+Connected mode cannot enter this path and does not delete rows, release
+authentication, clear storage, or replace the anonymous identity.
+
+Manual entry and AI extraction review compose the same platform-specific
+`DeadlineField`. Its form boundary accepts and emits only timezone-free
+`YYYY-MM-DD` strings. Native picker values are constructed and reconstructed at
+local noon with year/month/day round-trip validation; the existing manual and
+review validators remain responsible for converting a confirmed calendar date
+to the established UTC-noon `dueAt` representation. This changes no database,
+repository, extraction, or API contract.
 
 ### Shared Application State
 

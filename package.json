@@ -15,6 +15,7 @@
     "evaluate:email": "deno run --allow-env=EVALUATION_PROVIDER,OPENAI_API_KEY,OPENAI_EXTRACTION_MODEL,OLLAMA_BASE_URL,OLLAMA_EXTRACTION_MODEL,AI_EXTRACTION_TIMEOUT_MS --allow-net=api.openai.com,localhost:11434,127.0.0.1:11434,host.docker.internal:11434 supabase/functions/evaluation/run.ts"
   },
   "dependencies": {
+    "@expo/ui": "~57.0.7",
     "@supabase/supabase-js": "^2.110.7",
     "expo": "~57.0.7",
     "expo-constants": "~57.0.6",

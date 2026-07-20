@@ -7,6 +7,7 @@ import { formatMoney } from '@/lib/money';
 export function UndoBanner() {
   const {
     dismissMutationError,
+    dismissUndo,
     lastCompletion,
     mutationErrors,
     pendingItemOperations,
@@ -32,25 +33,37 @@ export function UndoBanner() {
       accessibilityRole="alert"
       className="absolute inset-x-4 bottom-5 z-50 mx-auto max-w-xl rounded-2xl bg-ink px-4 py-3 shadow-lg"
     >
-      <View className="flex-row items-center gap-3">
-        <Text className="min-w-0 flex-1 text-sm font-semibold leading-5 text-white">
+      <View className="flex-row flex-wrap items-center gap-3">
+        <Text className="min-w-[180px] flex-1 basis-60 text-sm font-semibold leading-5 text-white">
           {message}
         </Text>
-        <Pressable
-          accessibilityHint={`Restores ${item.title} to active tasks`}
-          accessibilityLabel={`Undo completion of ${item.title}`}
-          accessibilityRole="button"
-          accessibilityState={{ busy: isRestoring, disabled: isRestoring }}
-          className="min-h-11 justify-center rounded-xl bg-white px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-white"
-          disabled={isRestoring}
-          onPress={() => {
-            void undoLastCompletion();
-          }}
-        >
-          <Text className="font-extrabold text-ink">
-            {isRestoring ? 'Restoring…' : 'Undo'}
-          </Text>
-        </Pressable>
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Pressable
+            accessibilityHint={`Restores ${item.title} to active tasks`}
+            accessibilityLabel={`Undo completion of ${item.title}`}
+            accessibilityRole="button"
+            accessibilityState={{ busy: isRestoring, disabled: isRestoring }}
+            className="min-h-11 justify-center rounded-xl bg-white px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-white"
+            disabled={isRestoring}
+            onPress={() => {
+              void undoLastCompletion();
+            }}
+          >
+            <Text className="font-extrabold text-ink">
+              {isRestoring ? 'Restoring…' : 'Undo'}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityLabel="Dismiss Undo message"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isRestoring }}
+            className="min-h-11 justify-center rounded-xl px-3 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-white"
+            disabled={isRestoring}
+            onPress={dismissUndo}
+          >
+            <Text className="font-extrabold text-white">Dismiss</Text>
+          </Pressable>
+        </View>
       </View>
       {restoreError && (
         <MutationError

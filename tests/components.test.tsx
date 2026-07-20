@@ -41,10 +41,12 @@ describe('Milestone 01 components', () => {
       />,
     );
 
-    expect(
-      screen.getByText('Nothing is slipping through the cracks.'),
-    ).toBeTruthy();
+    expect(screen.getByText('No active financial tasks remain.')).toBeTruthy();
     expect(screen.getByLabelText('No active financial tasks')).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: 'Add a financial task' }),
+    ).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'View Activity' })).toBeNull();
   });
 
   it('shows one accessible secondary Add link for a pristine demo', () => {
@@ -101,5 +103,25 @@ describe('Milestone 01 components', () => {
     expect(
       screen.getByRole('button', { name: 'Complete Cancel free trial' }),
     ).toBeTruthy();
+  });
+
+  it('renders Next deadline on every active task tied for earliest', () => {
+    const referenceDate = new Date('2026-07-16T00:00:00.000Z');
+    const items = createDemoItems(referenceDate);
+    const tiedItems = [
+      items[0],
+      { ...items[1], dueAt: items[0].dueAt },
+      items[2],
+    ];
+
+    render(
+      <Dashboard
+        items={tiedItems}
+        onComplete={jest.fn().mockResolvedValue(true)}
+        referenceDate={referenceDate}
+      />,
+    );
+
+    expect(screen.getAllByText('Next deadline')).toHaveLength(2);
   });
 });

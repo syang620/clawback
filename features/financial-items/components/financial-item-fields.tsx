@@ -1,6 +1,5 @@
 import { type Ref, useMemo } from 'react';
 import {
-  Platform,
   Pressable,
   Text,
   TextInput,
@@ -8,6 +7,7 @@ import {
   View,
 } from 'react-native';
 
+import { DeadlineField } from '@/features/financial-items/components/deadline-field';
 import {
   financialItemKinds,
   type ManualFinancialItemErrors,
@@ -186,19 +186,10 @@ export function FinancialItemFields({
         value={values.provider}
       />
 
-      <LabeledTextInput
-        autoCapitalize="none"
-        autoCorrect={false}
+      <DeadlineField
+        disabled={disabled}
         error={errors.deadline}
-        editable={!disabled}
-        hint="Use YYYY-MM-DD, for example 2026-07-31. Calendar dates are stored without a time."
-        keyboardType={
-          Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'default'
-        }
-        label="Deadline"
-        onChangeText={(value) => onChange('deadline', value)}
-        placeholder="YYYY-MM-DD"
-        returnKeyType="next"
+        onChange={(value) => onChange('deadline', value)}
         value={values.deadline}
       />
 

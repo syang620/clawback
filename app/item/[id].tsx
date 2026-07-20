@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { AppHeader } from '@/components/app-header';
@@ -23,15 +23,14 @@ export default function FinancialItemDetailRoute() {
     <Screen>
       <AppHeader />
       <Pressable
-        accessibilityLabel="Go back"
+        accessibilityLabel="Return Home"
         accessibilityRole="button"
         className="mt-6 min-h-11 justify-center self-start rounded-xl px-1 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
         onPress={() => {
-          if (router.canGoBack()) router.back();
-          else router.replace('/');
+          router.replace('/');
         }}
       >
-        <Text className="font-extrabold text-brand">← Back</Text>
+        <Text className="font-extrabold text-brand">← Home</Text>
       </Pressable>
 
       {item ? (
@@ -57,14 +56,14 @@ export default function FinancialItemDetailRoute() {
           <Text className="mt-2 max-w-md text-center text-base leading-6 text-slate">
             It may no longer be part of this sample-data session.
           </Text>
-          <Link href="/" asChild>
-            <Pressable
-              accessibilityRole="link"
-              className="mt-5 min-h-11 justify-center rounded-xl bg-ink px-5 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
-            >
-              <Text className="font-extrabold text-white">Return Home</Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            accessibilityLabel="Return Home"
+            accessibilityRole="button"
+            className="mt-5 min-h-11 justify-center rounded-xl bg-ink px-5 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
+            onPress={() => router.replace('/')}
+          >
+            <Text className="font-extrabold text-white">Return Home</Text>
+          </Pressable>
         </View>
       )}
     </Screen>

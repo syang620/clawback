@@ -2,7 +2,10 @@ import { View } from 'react-native';
 
 import { EmptyState } from '@/components/empty-state';
 import { SwipeToStrike } from '@/features/financial-items/components/swipe-to-strike';
-import { findNextDueItem } from '@/features/financial-items/logic/dashboard';
+import {
+  findEarliestActiveDeadline,
+  getActiveDeadlineCalendarDate,
+} from '@/features/financial-items/logic/dashboard';
 import { rankFinancialItems } from '@/features/financial-items/logic/urgency';
 import type {
   FinancialItemsMutationError,
@@ -34,9 +37,17 @@ export function FinancialItemList({
   referenceDate,
 }: FinancialItemListProps) {
   const rankedItems = rankFinancialItems(items, referenceDate);
-  if (rankedItems.length === 0) return <EmptyState />;
+  if (rankedItems.length === 0) {
+    return (
+      <EmptyState
+        showActivityLink={items.some(
+          (item) => item.status === 'completed' || item.status === 'expired',
+        )}
+      />
+    );
+  }
 
-  const nextDueItem = findNextDueItem(rankedItems);
+  const earliestActiveDeadline = findEarliestActiveDeadline(items);
 
   return (
     <View className="gap-4">
@@ -52,7 +63,10 @@ export function FinancialItemList({
             <FinancialItemCard
               item={item}
               isCompleting={pendingItemOperations[item.id] === 'complete'}
-              isNextDue={item.id === nextDueItem?.id}
+              isNextDue={
+                earliestActiveDeadline !== null &&
+                getActiveDeadlineCalendarDate(item) === earliestActiveDeadline
+              }
               mutationError={mutationErrors.find(
                 (error) =>
                   error.operation === 'complete' && error.itemId === item.id,

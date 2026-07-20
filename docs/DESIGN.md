@@ -150,6 +150,13 @@ The panel has one secondary Add link and states that Clawback tracks actions
 but does not cancel or redeem automatically. Loading, error, empty, and partial
 seed states are not first-run states.
 
+Checkpoint 6B adds a low-emphasis Demo controls area at the end of the Add
+screen. Local demo reset requires an inline confirmation that names the local
+tasks, history, metrics, pending Undo, and local changes it will replace. A
+successful reset returns Home without a reload. Connected mode shows concise
+private/incognito-session guidance as a passive informational note instead of
+a selectable card or destructive reset.
+
 ### Home Dashboard
 
 Required areas:
@@ -206,6 +213,12 @@ Required:
 - Optional recurrence
 - Optional action URL
 
+Manual entry and extraction review share one Deadline field. iOS uses a small
+modal with the native inline calendar and explicit Cancel/Use date actions;
+Android uses the native date dialog; web uses a browser-native date input. The
+visible value may be localized, but form state remains a timezone-free
+`YYYY-MM-DD` string and existing form validation remains authoritative.
+
 ### Task Detail
 
 Required:
@@ -257,6 +270,10 @@ Each card should include:
 7. Optional recurrence
 8. Action affordance
 9. Completion affordance
+
+“Next deadline” applies to every active task whose valid calendar date equals
+the earliest active calendar date. Completed, expired, or invalid-date tasks do
+not participate. This badge rule does not change the ranked card order.
 
 Example:
 
@@ -405,6 +422,10 @@ Message:
 
 > Your first strike will show up here.
 
+The Undo banner includes visible Undo and Dismiss actions. Its message and
+controls wrap rather than overflow at constrained widths. Dismiss removes only
+the banner; it does not restore or otherwise change the completed task.
+
 ### AI Could Not Parse
 
 Message:
@@ -430,6 +451,11 @@ Examples:
 
 Do not fake a fixed sequence if the implementation does not actually provide progress. A single clear loading message is acceptable.
 
+During application startup, keep the Clawback name and value proposition
+visible above one specific loading or safe error state. Configuration failures
+use bounded setup guidance and never render raw connection details. Retry is
+shown only for connection or read operations that can meaningfully be retried.
+
 ## 17. Error States
 
 Error messages must:
@@ -443,6 +469,16 @@ Error messages must:
 Example:
 
 > We could not reach the email parser. Your text is still here, so you can retry or create the task manually.
+
+For validated destinations, task details group provider opening and completion
+under a compact Next action section. The provider-aware action shows the
+validated HTTPS hostname and identifies it as external. Phone layouts stack the
+external action and Complete control; wider layouts may share a row when both
+remain clear. Missing or rejected URLs omit the workflow heading and use quiet,
+unbordered, noninteractive guidance beside the independent Complete control. If
+the platform cannot open a validated destination, show a safe inline error with
+explicit Retry and Dismiss; never display the full URL, query parameters, or
+platform error.
 
 ## 18. Responsive Web Behavior
 

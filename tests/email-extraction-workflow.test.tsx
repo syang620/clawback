@@ -1,3 +1,4 @@
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import {
   act,
   fireEvent,
@@ -18,6 +19,7 @@ import {
   type FinancialEmailParser,
 } from '@/features/email-parser/types';
 import { useEmailExtractionWorkflow } from '@/features/email-parser/use-email-extraction-workflow';
+import { calendarDateToLocalNoon } from '@/lib/dates';
 import type {
   CreateFinancialItemInput,
   FinancialItem,
@@ -25,6 +27,28 @@ import type {
 
 const rawEmail =
   'Example renews for $0 on 2026-08-15. Manage it at https://example.com/account';
+
+function selectReviewDeadline(value: string) {
+  const date = calendarDateToLocalNoon(value);
+  if (!date) throw new Error(`Test deadline must be valid: ${value}`);
+
+  fireEvent.press(screen.getByRole('button', { name: /Deadline, required/ }));
+  const picker = screen.UNSAFE_getByType(DateTimePicker);
+  act(() => {
+    picker.props.onValueChange?.(
+      {
+        nativeEvent: {
+          timestamp: date.getTime(),
+          utcOffset: -date.getTimezoneOffset(),
+        },
+      },
+      date,
+    );
+  });
+  fireEvent.press(
+    screen.getByRole('button', { name: 'Use selected deadline' }),
+  );
+}
 
 const actionable = (
   title = 'Review Example renewal',
@@ -108,6 +132,7 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
     await screen.findByText('Review extracted task');
 
     expect(screen.getByDisplayValue('0.00')).toBeTruthy();
+    expect(screen.getByText('Aug 15, 2026')).toBeTruthy();
     expect(screen.getByText('Not specified')).toBeTruthy();
     expect(screen.getByText('Choose whether this task repeats.')).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Save task' }));
@@ -117,6 +142,7 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
     ).toBeTruthy();
 
     fireEvent.press(screen.getByRole('radio', { name: 'One time' }));
+    selectReviewDeadline('2026-08-31');
     fireEvent.changeText(
       screen.getByDisplayValue('Review Example renewal'),
       'Review edited renewal',
@@ -125,6 +151,10 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
     expect(
       screen.getByRole('button', { name: 'Saving…' }).props.accessibilityState,
     ).toMatchObject({ busy: true, disabled: true });
+    expect(
+      screen.getByRole('button', { name: /Deadline, required/ }).props
+        .accessibilityState,
+    ).toMatchObject({ disabled: true });
     await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
 
     expect(parser.extract).toHaveBeenCalledWith(
@@ -142,6 +172,7 @@ describe('Checkpoint 5B-2 email extraction workflow', () => {
         chargeAmountCents: 0,
         valueCents: null,
         recurrence: 'none',
+        dueAt: '2026-08-31T12:00:00.000Z',
         source: 'email',
         extractionConfidence: 0.72,
       }),

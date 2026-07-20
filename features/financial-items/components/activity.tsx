@@ -46,8 +46,18 @@ export function Activity({ items }: ActivityProps) {
             Your first strike will show up here.
           </Text>
           <Text className="mt-2 max-w-md text-center text-base leading-6 text-slate">
-            Complete a task from Home when you have taken the action yourself.
+            Tasks you complete will appear here after you take the action
+            yourself. Expired tasks also appear here.
           </Text>
+          <Link href="/" asChild>
+            <Pressable
+              accessibilityLabel="Return Home"
+              accessibilityRole="link"
+              className="mt-5 min-h-11 justify-center rounded-xl border border-line px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
+            >
+              <Text className="font-extrabold text-ink">Return Home</Text>
+            </Pressable>
+          </Link>
         </View>
       ) : (
         <View className="gap-4">

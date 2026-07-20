@@ -189,6 +189,74 @@ describe('Checkpoint 4B initialization', () => {
     expect(dependencies.createLocalRepository).not.toHaveBeenCalled();
   });
 
+  it('refuses Local reset during Connected authentication, seeding, and loading', async () => {
+    let context: ReturnType<typeof useFinancialItems> | null = null;
+    let resolveRuntime:
+      ((value: { repository: FinancialItemsRepository }) => void) | null = null;
+    let resolveSeed: (() => void) | null = null;
+    let resolveList: ((items: FinancialItem[]) => void) | null = null;
+    const repository = repositoryWith([]);
+    (repository.ensureInitialSeed as jest.Mock).mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSeed = resolve;
+        }),
+    );
+    (repository.listItems as jest.Mock).mockImplementation(
+      () =>
+        new Promise<FinancialItem[]>((resolve) => {
+          resolveList = resolve;
+        }),
+    );
+    const runtimePromise = new Promise<{
+      repository: FinancialItemsRepository;
+    }>((resolve) => {
+      resolveRuntime = resolve;
+    });
+    const dependencies: FinancialItemsProviderDependencies = {
+      environment: connectedEnvironment,
+      createLocalRepository: jest.fn(),
+      createConnectedRuntime: jest.fn().mockReturnValue(runtimePromise),
+    };
+    const attemptReset = () => {
+      if (!context) throw new Error('Context was not captured.');
+      return context.resetLocalDemo();
+    };
+
+    render(
+      <FinancialItemsProvider
+        dependencies={dependencies}
+        referenceDate={new Date('2026-07-16T00:00:00.000Z')}
+      >
+        <Harness capture={(value) => (context = value)} />
+      </FinancialItemsProvider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Phase authenticating')).toBeTruthy(),
+    );
+    await expect(attemptReset()).resolves.toBe(false);
+
+    await act(async () => {
+      resolveRuntime?.({ repository });
+      await runtimePromise;
+    });
+    await waitFor(() => expect(screen.getByText('Phase seeding')).toBeTruthy());
+    await expect(attemptReset()).resolves.toBe(false);
+
+    act(() => resolveSeed?.());
+    await waitFor(() => expect(screen.getByText('Phase loading')).toBeTruthy());
+    await expect(attemptReset()).resolves.toBe(false);
+
+    act(() =>
+      resolveList?.(createDemoItems(new Date('2026-07-16T00:00:00.000Z'))),
+    );
+    await waitFor(() => expect(screen.getByText('Phase ready')).toBeTruthy());
+    await expect(attemptReset()).resolves.toBe(false);
+    expect(dependencies.createLocalRepository).not.toHaveBeenCalled();
+    expect(repository.deleteItem).not.toHaveBeenCalled();
+  });
+
   it('shows pristine state only after a complete Connected seed set loads', async () => {
     const referenceDate = new Date('2026-07-16T00:00:00.000Z');
     const connectedItems = createDemoItems(referenceDate).map(

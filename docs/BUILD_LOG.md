@@ -1031,4 +1031,98 @@ architecture.
 
 ### Commit
 
+- `d33b36b` — `feat: complete Milestone 06 checkpoint 6A`
+
+---
+
+## 2026-07-19 — Milestone 06 Checkpoint 6B States and Interaction Polish
+
+### Objective
+
+Implement Local-demo reset and focused recovery/presentation polish without
+beginning the broader accessibility, cleanup, or deployment checkpoints.
+
+### Codex Contribution
+
+- Added confirmation-gated Local reset using a fresh local repository and the
+  existing seed factory. Canonical items are loaded and validated before the
+  provider swaps visible state, clears Undo/errors/pending presentation, and
+  restores pristine-panel eligibility.
+- Added synchronous duplicate protection and fail-closed refusal while a local
+  create, complete, or restore mutation is in flight.
+- Added concise Connected anonymous-session guidance with no destructive
+  action, sign-out, identity replacement, or database mutation.
+- Added Home and Activity recovery actions, branded startup/loading/error
+  presentation, safe external-action Retry/Dismiss, and a wrapping dismissible
+  Undo banner.
+- Added deterministic coverage for reset atomicity and isolation, reference
+  dates, session-marker restoration, duplicate/race guards, route recovery,
+  safe configuration copy, external URL validation/open failures, and Undo
+  semantics.
+- Added one shared platform-specific Deadline field for manual creation and AI
+  review. It uses Expo UI's native date picker on iOS/Android and a native HTML
+  date input on web while preserving `YYYY-MM-DD` form state and existing
+  validation/persistence contracts.
+- Replaced the ID-tiebroken single Next deadline selection with an earliest
+  active calendar-date comparison. Every task tied on that date now receives
+  the badge without changing ranking or display order.
+
+### Scope Boundaries
+
+- No database/schema, authentication, extraction, provider, rate-limit,
+  deployment, comprehensive accessibility, reduced-motion, or broad responsive
+  changes. The only dependency addition is the approved Expo-compatible
+  `@expo/ui` native picker.
+- No live model or hosted-service requests.
+
+### Verification
+
+- Focused Checkpoint 6B tests: passed, 11 suites and 70 tests.
+- Expo dependency compatibility check: passed.
+- TypeScript, lint, and formatting: passed.
+- Full Jest suite: passed, 36 suites and 268 tests.
+- Expo web export: passed, 1,375 modules.
+- `git diff --check`: passed.
+- Isolated Local-demo iPhone 17 Pro Simulator Add screen: Demo controls were
+  discoverable with no visible horizontal clipping.
+- Local-demo reset passed after manual creation, completion with pending Undo,
+  Undo expiry, and Activity navigation. Confirmation Cancel, rapid duplicate
+  confirmation, canonical task/metric restoration, and isolation from an old
+  Undo timer also passed.
+- Connected guidance passed with no destructive reset, a clearly informational
+  presentation, accurate persistent/private-session copy, and no change to
+  existing records.
+- Home and Activity empty-state recovery passed without misleading deletion
+  copy.
+- Normal startup, offline startup and Retry, and fail-closed partial invalid
+  configuration passed without exposing raw secrets, endpoints, stack traces,
+  or provider payloads.
+- External actions passed for a valid open, one attempt per activation, no
+  missing-URL opener, safe Retry and Dismiss after simulated failure, exactly
+  one new attempt on Retry, and unchanged task state.
+- Undo passed at phone width and 200% web zoom; Dismiss left the item completed
+  and no horizontal overflow was observed.
+- Owner Deadline-picker review passed for iOS open, existing-value
+  initialization, month/year/day selection, staged Cancel and Use date,
+  empty-value non-commit, iPhone viewport fit, web native calendar and keyboard
+  behavior, shared manual/AI-review use, and no visible date shift.
+- The picker-only review did not specifically inspect console or Metro output;
+  no user-visible errors were observed during that review. The final 6B warning
+  gate explicitly inspected both the browser developer console and Metro/Expo
+  terminal output and passed with no warnings observed.
+- Next-deadline tie behavior passed owner review: all active tasks sharing the
+  earliest valid calendar deadline received the badge, ranking and display
+  order remained unchanged, and presentation was consistent on iOS and web.
+- Checkpoint 6B was accepted by the owner on 2026-07-19.
+- Final automated results are recorded in the Milestone 06 completion record.
+
+### Remaining Limitations
+
+- No Checkpoint 6B acceptance blockers remain.
+- VoiceOver, comprehensive keyboard-only, reduced-motion, responsive/zoom,
+  warning cleanup, and performance work remain deferred to Checkpoint 6C.
+- Deployment remains deferred to Checkpoint 6D.
+
+### Commit
+
 Pending. No commit, tag, or push was performed.

@@ -1,10 +1,14 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { DemoControls } from '@/features/financial-items/components/demo-controls';
 import type { FinancialItemKind } from '@/types/financial-item';
 
 interface AddMenuProps {
+  isLocalDemoResetBlocked?: boolean;
+  isResettingLocalDemo?: boolean;
   onCancel: () => void;
   onExtractEmail: () => void;
+  onResetLocalDemo?: () => Promise<boolean>;
   onSelect: (kind: FinancialItemKind) => void;
   mode: 'demo' | 'connected';
 }
@@ -32,9 +36,12 @@ const choices: Array<{
 ];
 
 export function AddMenu({
+  isLocalDemoResetBlocked = false,
+  isResettingLocalDemo = false,
   mode,
   onCancel,
   onExtractEmail,
+  onResetLocalDemo,
   onSelect,
 }: AddMenuProps) {
   return (
@@ -94,6 +101,13 @@ export function AddMenu({
           </Pressable>
         ))}
       </View>
+
+      <DemoControls
+        isBlocked={isLocalDemoResetBlocked}
+        isResetting={isResettingLocalDemo}
+        mode={mode}
+        onResetLocalDemo={onResetLocalDemo}
+      />
 
       <Pressable
         accessibilityRole="button"

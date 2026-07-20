@@ -100,7 +100,13 @@ A judge can understand Clawback quickly, complete the core workflow without assi
 
 ### Checkpoint 6B — States and interaction polish
 
-- Deferred until 6A acceptance.
+- Add confirmation-gated, atomic Local-demo reset and non-destructive Connected
+  guidance.
+- Add recovery actions for Home and Activity empty states.
+- Refine startup/loading/configuration presentation without changing
+  initialization behavior.
+- Add fail-closed external-action opening with safe Retry and Dismiss.
+- Make Undo presentation wrap safely and add an explicit Dismiss action.
 
 ### Checkpoint 6C — Accessibility, responsive behavior, and cleanup
 
@@ -138,7 +144,7 @@ To be filled in after implementation.
 
 Checkpoint 6A accepted on 2026-07-19 after automated verification, owner visual
 and behavioral review, and an isolated pristine Local-demo panel check.
-Checkpoints 6B through 6D have not started.
+Checkpoint 6B status is recorded below. Checkpoints 6C and 6D have not started.
 
 ### Files Changed
 
@@ -186,15 +192,127 @@ Checkpoints 6B through 6D have not started.
 
 ### Known Limitations
 
-- The reset-facing marker transition is defined and tested, but Checkpoint 6B
-  reset controls and dataset restoration are intentionally not implemented.
-- Loading/error polish, external-link recovery, broader accessibility cleanup,
-  and public deployment remain deferred to their approved checkpoints.
+- At Checkpoint 6A acceptance, reset controls and interaction-state recovery
+  were intentionally deferred. The Checkpoint 6B record below supersedes those
+  deferrals. Broader accessibility cleanup and public deployment remain in
+  Checkpoints 6C and 6D.
 
 ### Commit
 
-- Pending
+- `d33b36b` — `feat: complete Milestone 06 checkpoint 6A`
 
 ### Build Log Updated
 
 - [x] `docs/BUILD_LOG.md`
+
+## Checkpoint 6B Completion Record
+
+### Status
+
+Checkpoint 6B was accepted by the owner on 2026-07-19 after deterministic
+verification and the manual observations below. Checkpoints 6C and 6D have not
+started.
+
+### Implemented Behavior
+
+- Local demo exposes Demo controls at the end of Add. Reset requires explicit
+  inline confirmation, creates the canonical three seeds with the provider
+  reference date, validates them before committing, clears local changes,
+  history, metrics, Undo, mutation presentation, and the session-interaction
+  marker, then returns Home without a reload.
+- Reset is rejected without state changes while a create, complete, or restore
+  mutation is in flight. A synchronous reset guard prevents duplicate
+  activation. No Supabase, deletion, or authentication operation is part of
+  the reset path.
+- Connected mode exposes no reset action. A passive Clean demo session note
+  explains that records persist for the current anonymous session and that a
+  fresh private/incognito browser session is separate; the original records
+  remain unchanged and are unavailable from the new session.
+- Home and Activity empty states now provide one clear recovery action, with a
+  secondary Activity route on Home only when completed or expired history
+  exists.
+- Startup keeps the Clawback identity visible. Loading copy is user-facing;
+  configuration and initialization errors use fixed safe messages and expose
+  Retry only where it can help.
+- Task details always present an Action-page state. Valid destinations show
+  only their hostname, are revalidated immediately before `Linking.openURL`,
+  and identify the destination as external. Missing or rejected URLs have no
+  opener. Open failures expose safe, explicit Retry and Dismiss without an
+  automatic retry or raw URL/platform error.
+- Undo keeps the existing eight-second and pessimistic restore behavior. Its
+  message and controls wrap, and visible Dismiss removes only the banner.
+- Manual creation and AI review now share a platform-specific Deadline field.
+  Android uses the Expo UI native date dialog, iOS stages the native inline
+  picker in a Cancel/Use date modal, and web uses `<input type="date">`. Form
+  state remains `YYYY-MM-DD`; existing validators and UTC-noon persistence are
+  unchanged.
+- Next deadline presentation now compares valid active calendar dates and marks
+  every task tied on the minimum date. Completed, expired, and invalid-date
+  tasks are excluded; ranking and display order are unchanged.
+
+### Automated Verification
+
+- Focused Checkpoint 6B tests: passed, 11 suites and 70 tests.
+- Expo dependency compatibility check: passed
+- TypeScript: passed
+- Lint: passed
+- Formatting: passed
+- Full Jest suite: passed, 36 suites and 268 tests
+- Expo web export: passed, 1,375 modules
+- `git diff --check`: passed
+- Normal deterministic commands did not invoke GPT-5.6 or hosted services.
+
+### Manual Review
+
+- Isolated Local-demo iPhone 17 Pro Simulator Add screen: passed a visual smoke
+  check for the mode label, existing Add choices, and discoverable Demo
+  controls without visible horizontal clipping.
+- Local-demo reset matrix: passed after manual creation, completion with a
+  pending Undo, Undo expiry, and Activity navigation. Confirmation Cancel and
+  rapid duplicate confirmation passed; canonical tasks and metrics were
+  restored, and an old Undo timer could not affect the reset state.
+- Connected guidance: passed. No destructive reset was exposed, the panel read
+  as information, the persistent-session/private-session explanation was
+  clear, and existing Connected records remained unchanged.
+- Home and Activity empty states: passed. Recovery actions worked and the copy
+  did not imply that completed tasks had been deleted.
+- Startup and configuration states: passed for normal startup, offline startup
+  with Retry, and fail-closed partial invalid configuration. No raw secrets,
+  endpoints, stack traces, or provider payloads were shown.
+- External actions: passed for a valid open, one attempt per activation, no
+  opener when the URL was missing, and a simulated failure with safe Retry and
+  Dismiss. One Retry created one new attempt and task state remained unchanged.
+- Undo: passed at phone width and 200% web zoom. Dismiss left the item completed
+  and the banner introduced no horizontal overflow.
+- Owner Deadline-picker review passed on iOS for opening, existing-value
+  initialization, month/year/day selection, Cancel preservation, explicit Use
+  date commit, empty-value non-commit, iPhone viewport fit, and no visible date
+  shift. Web native-calendar opening, date selection, keyboard interaction, and
+  shared use in both manual creation and AI review also passed. The picker-only
+  review did not specifically inspect console or Metro output; no user-visible
+  errors were observed during that review.
+- Next-deadline ties: passed. Every active task sharing the earliest valid
+  calendar deadline received Next deadline, ranking and display order remained
+  unchanged, and the result was visually consistent on iOS and web.
+- Final Checkpoint 6B warning gate: passed. The browser developer console and
+  Metro/Expo terminal output were both explicitly inspected; no warnings were
+  observed.
+- VoiceOver full-flow, comprehensive keyboard-only review, reduced-motion
+  review, and the comprehensive responsive/zoom matrix remain deferred to
+  Checkpoint 6C and are not claimed as passed.
+
+### Known Limitations
+
+- Reset does not cancel an in-flight local write. It fails closed and leaves
+  state unchanged until that write settles, after which the user can confirm
+  reset again.
+- Connected anonymous-session recovery architecture remains out of scope; the
+  Add-screen guidance describes the current separation behavior without
+  changing authentication.
+- No Checkpoint 6B acceptance blockers remain. The broader accessibility,
+  responsive, warning-cleanup, and performance passes remain assigned to
+  Checkpoint 6C, and deployment remains assigned to Checkpoint 6D.
+
+### Commit
+
+- Pending

@@ -1,6 +1,7 @@
-import { Linking, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { MutationError } from '@/components/mutation-error';
+import { ExternalAction } from '@/features/financial-items/components/external-action';
 import { UrgencyBadge } from '@/features/financial-items/components/urgency-badge';
 import { getDeadlinePresentation } from '@/features/financial-items/logic/urgency';
 import { formatAbsoluteDate } from '@/lib/dates';
@@ -33,7 +34,7 @@ export function FinancialItemDetail({
     item.kind === 'perk' ? item.valueCents : item.chargeAmountCents;
   const amountLabel = item.kind === 'perk' ? 'available' : 'at risk';
   const deadline = getDeadlinePresentation(item.dueAt, referenceDate);
-  const safeActionUrl = getSafeHttpsUrl(item.actionUrl);
+  const hasSafeActionUrl = Boolean(getSafeHttpsUrl(item.actionUrl));
 
   return (
     <View className="mt-8 rounded-3xl border border-line bg-surface p-6">
@@ -93,40 +94,50 @@ export function FinancialItemDetail({
         )}
       </View>
 
-      <View className="mt-7 flex-row flex-wrap gap-3">
-        {safeActionUrl && (
-          <Pressable
-            accessibilityHint={`Opens ${safeActionUrl.hostname} in your browser; Clawback does not take the financial action for you`}
-            accessibilityLabel={`Open action page on ${safeActionUrl.hostname}`}
-            accessibilityRole="link"
-            className="min-h-11 justify-center rounded-xl border border-line px-4 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
-            onPress={() => {
-              void Linking.openURL(safeActionUrl.href).catch(() => undefined);
-            }}
-          >
-            <Text className="font-extrabold text-ink">Open action page</Text>
-            <Text className="mt-0.5 text-xs text-slate">
-              {safeActionUrl.hostname}
+      <View
+        className={hasSafeActionUrl ? 'mt-7 border-t border-line pt-6' : 'mt-7'}
+      >
+        {hasSafeActionUrl && (
+          <>
+            <Text
+              accessibilityRole="header"
+              className="text-lg font-black text-ink"
+            >
+              Next action
             </Text>
-          </Pressable>
+            {item.status === 'active' && (
+              <Text className="mt-1 text-sm leading-5 text-slate">
+                Open the provider’s website, then mark this task complete.
+              </Text>
+            )}
+          </>
         )}
-        {item.status === 'active' && (
-          <Pressable
-            accessibilityHint="Records that you completed this task yourself"
-            accessibilityLabel={`Complete ${item.title}`}
-            accessibilityRole="button"
-            accessibilityState={{ busy: isCompleting, disabled: isCompleting }}
-            className="min-h-11 justify-center rounded-xl bg-ink px-5 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand"
-            disabled={isCompleting}
-            onPress={() => {
-              void onComplete(item.id);
-            }}
-          >
-            <Text className="font-extrabold text-white">
-              {isCompleting ? 'Completing…' : 'Complete'}
-            </Text>
-          </Pressable>
-        )}
+        <View
+          accessibilityLabel="Next action controls"
+          className={`${hasSafeActionUrl ? 'mt-4' : ''} gap-4 md:flex-row md:items-start`}
+        >
+          <ExternalAction actionUrl={item.actionUrl} provider={item.provider} />
+          {item.status === 'active' && (
+            <Pressable
+              accessibilityHint="Records that you completed this task yourself"
+              accessibilityLabel={`Complete ${item.title}`}
+              accessibilityRole="button"
+              accessibilityState={{
+                busy: isCompleting,
+                disabled: isCompleting,
+              }}
+              className="min-h-11 w-full items-center justify-center rounded-xl bg-ink px-5 py-3 web:cursor-pointer web:focus-visible:outline web:focus-visible:outline-2 web:focus-visible:outline-offset-2 web:focus-visible:outline-brand md:w-auto"
+              disabled={isCompleting}
+              onPress={() => {
+                void onComplete(item.id);
+              }}
+            >
+              <Text className="font-extrabold text-white">
+                {isCompleting ? 'Completing…' : 'Complete'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
       </View>
       {mutationError && onDismissError && (
         <MutationError

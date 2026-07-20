@@ -112,6 +112,7 @@ export function ManualFinancialItemForm({
 
       <View className="mt-7">
         <FinancialItemFields
+          disabled={isSubmitting}
           errors={errors}
           onChange={updateEditorValue}
           titleRef={titleRef}

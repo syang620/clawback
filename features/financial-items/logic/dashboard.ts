@@ -1,3 +1,4 @@
+import { parseCalendarDateInput } from '@/lib/dates';
 import type { FinancialItem } from '@/types/financial-item';
 
 export interface DashboardMetrics {
@@ -32,18 +33,24 @@ export function calculateDashboardMetrics(
   );
 }
 
-export function findNextDueItem(items: FinancialItem[]): FinancialItem | null {
-  return items
-    .filter(
-      (item) =>
-        item.status === 'active' && Number.isFinite(Date.parse(item.dueAt)),
-    )
-    .reduce<FinancialItem | null>((nextItem, item) => {
-      if (!nextItem) return item;
+export function getActiveDeadlineCalendarDate(
+  item: FinancialItem,
+): string | null {
+  if (item.status !== 'active') return null;
 
-      const dueDifference = Date.parse(item.dueAt) - Date.parse(nextItem.dueAt);
-      if (dueDifference < 0) return item;
-      if (dueDifference === 0 && item.id < nextItem.id) return item;
-      return nextItem;
-    }, null);
+  const calendarDate = item.dueAt.match(/^(\d{4}-\d{2}-\d{2})(?:T|$)/)?.[1];
+  if (!calendarDate || !parseCalendarDateInput(calendarDate).ok) return null;
+  if (!Number.isFinite(Date.parse(item.dueAt))) return null;
+  return calendarDate;
+}
+
+export function findEarliestActiveDeadline(
+  items: FinancialItem[],
+): string | null {
+  return items.reduce<string | null>((earliestDate, item) => {
+    const calendarDate = getActiveDeadlineCalendarDate(item);
+    if (!calendarDate) return earliestDate;
+    if (!earliestDate || calendarDate < earliestDate) return calendarDate;
+    return earliestDate;
+  }, null);
 }

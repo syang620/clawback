@@ -81,6 +81,7 @@ interface FinancialItemsContextValue {
   initialization: FinancialItemsInitializationState;
   isCreating: boolean;
   isPristineDemoState: boolean;
+  isResettingLocalDemo: boolean;
   items: FinancialItem[];
   lastCompletion: CompletionRecord | null;
   mode: FinancialItemsMode | null;
@@ -88,6 +89,7 @@ interface FinancialItemsContextValue {
   pendingItemOperations: Readonly<
     Record<string, FinancialItemPendingOperation>
   >;
+  resetLocalDemo: () => Promise<boolean>;
   retryInitialization: () => void;
   undoLastCompletion: () => Promise<boolean>;
 }
@@ -185,6 +187,7 @@ export function FinancialItemsProvider({
   const [isCreating, setIsCreating] = useState(false);
   const [hasMeaningfullyInteractedThisSession, setHasMeaningfullyInteracted] =
     useState(false);
+  const [isResettingLocalDemo, setIsResettingLocalDemo] = useState(false);
 
   const itemsRef = useRef<FinancialItem[]>([]);
   const repositoryRef = useRef<FinancialItemsRepository | null>(null);
@@ -196,6 +199,8 @@ export function FinancialItemsProvider({
   const pendingMutationKeysRef = useRef(new Set<string>());
   const lastCompletionRef = useRef<CompletionRecord | null>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isResettingLocalDemoRef = useRef(false);
+  const isInitializingRef = useRef(false);
 
   const clearUndoTimer = useCallback(() => {
     if (undoTimerRef.current) {
@@ -240,7 +245,12 @@ export function FinancialItemsProvider({
       operation: FinancialItemsMutationOperation,
       itemId?: string,
     ): MutationClaim | null => {
-      if (pendingMutationKeysRef.current.has(key)) return null;
+      if (
+        isResettingLocalDemoRef.current ||
+        pendingMutationKeysRef.current.has(key)
+      ) {
+        return null;
+      }
 
       pendingMutationKeysRef.current.add(key);
       mutationSequenceRef.current += 1;
@@ -345,8 +355,11 @@ export function FinancialItemsProvider({
   );
 
   const runInitialization = useCallback(async () => {
+    if (isResettingLocalDemoRef.current) return;
+
     initializationGenerationRef.current += 1;
     const generation = initializationGenerationRef.current;
+    isInitializingRef.current = true;
     repositoryRef.current = null;
     setMode(null);
     itemsRef.current = [];
@@ -360,6 +373,7 @@ export function FinancialItemsProvider({
       setInitialization(
         initializationError('configuration-error', environment.message),
       );
+      isInitializingRef.current = false;
       return;
     }
 
@@ -404,6 +418,7 @@ export function FinancialItemsProvider({
       setItems(loadedItems);
       setMode(environment.mode);
       setInitialization({ phase: 'ready' });
+      isInitializingRef.current = false;
     } catch {
       if (generation !== initializationGenerationRef.current) {
         connectedRuntime?.release?.();
@@ -432,6 +447,7 @@ export function FinancialItemsProvider({
           ),
         );
       }
+      isInitializingRef.current = false;
     }
   }, [
     clearUndoTimer,
@@ -445,6 +461,7 @@ export function FinancialItemsProvider({
     void runInitialization();
     return () => {
       initializationGenerationRef.current += 1;
+      isInitializingRef.current = false;
       clearUndoTimer();
       lifecycleReleaseRef.current?.();
       lifecycleReleaseRef.current = null;
@@ -626,6 +643,61 @@ export function FinancialItemsProvider({
     setCompletionRecord,
   ]);
 
+  const resetLocalDemo = useCallback(async (): Promise<boolean> => {
+    if (
+      mode !== 'demo' ||
+      initialization.phase !== 'ready' ||
+      isInitializingRef.current ||
+      isResettingLocalDemoRef.current ||
+      pendingMutationKeysRef.current.size > 0
+    ) {
+      return false;
+    }
+
+    isResettingLocalDemoRef.current = true;
+    setIsResettingLocalDemo(true);
+    const generation = initializationGenerationRef.current;
+
+    try {
+      const nextRepository = runtimeDependencies.createLocalRepository({
+        referenceDate: referenceDateRef.current,
+      });
+      const canonicalItems = await nextRepository.listItems();
+      if (
+        generation !== initializationGenerationRef.current ||
+        !isCanonicalDemoState(canonicalItems, referenceDateRef.current)
+      ) {
+        return false;
+      }
+
+      repositoryRef.current = nextRepository;
+      itemsRef.current = canonicalItems;
+      clearUndoTimer();
+      setCompletionRecord(null);
+      resetMutationState();
+      setItems(canonicalItems);
+      setHasMeaningfullyInteracted((current) =>
+        nextDemoSessionInteractionState(
+          current,
+          'explicit-local-reset-succeeded',
+        ),
+      );
+      return true;
+    } catch {
+      return false;
+    } finally {
+      isResettingLocalDemoRef.current = false;
+      setIsResettingLocalDemo(false);
+    }
+  }, [
+    clearUndoTimer,
+    initialization.phase,
+    mode,
+    resetMutationState,
+    runtimeDependencies,
+    setCompletionRecord,
+  ]);
+
   const getItem = useCallback(
     (id: string) => items.find((item) => item.id === id) ?? null,
     [items],
@@ -649,11 +721,13 @@ export function FinancialItemsProvider({
       initialization,
       isCreating,
       isPristineDemoState,
+      isResettingLocalDemo,
       items,
       lastCompletion,
       mode,
       mutationErrors,
       pendingItemOperations,
+      resetLocalDemo,
       retryInitialization: runInitialization,
       undoLastCompletion,
     }),
@@ -666,11 +740,13 @@ export function FinancialItemsProvider({
       initialization,
       isCreating,
       isPristineDemoState,
+      isResettingLocalDemo,
       items,
       lastCompletion,
       mode,
       mutationErrors,
       pendingItemOperations,
+      resetLocalDemo,
       runInitialization,
       undoLastCompletion,
     ],

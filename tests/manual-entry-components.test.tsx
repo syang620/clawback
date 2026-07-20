@@ -1,7 +1,31 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { AddMenu } from '@/features/financial-items/components/add-menu';
 import { ManualFinancialItemForm } from '@/features/financial-items/components/manual-financial-item-form';
+import { calendarDateToLocalNoon } from '@/lib/dates';
+
+function selectDeadline(value: string) {
+  const date = calendarDateToLocalNoon(value);
+  if (!date) throw new Error(`Test deadline must be valid: ${value}`);
+
+  fireEvent.press(screen.getByRole('button', { name: /Deadline, required/ }));
+  const picker = screen.UNSAFE_getByType(DateTimePicker);
+  act(() => {
+    picker.props.onValueChange?.(
+      {
+        nativeEvent: {
+          timestamp: date.getTime(),
+          utcOffset: -date.getTimezoneOffset(),
+        },
+      },
+      date,
+    );
+  });
+  fireEvent.press(
+    screen.getByRole('button', { name: 'Use selected deadline' }),
+  );
+}
 
 describe('Milestone 03 Add menu', () => {
   it('offers exactly the three manual task types and supports cancellation', () => {
@@ -48,6 +72,69 @@ describe('Milestone 03 Add menu', () => {
     expect(
       screen.getByRole('button', { name: 'Add a subscription' }),
     ).toBeTruthy();
+    const connectedGuidance = screen.getByLabelText('Connected demo guidance');
+    expect(screen.getByText('Clean demo session')).toBeTruthy();
+    expect(connectedGuidance.props.onPress).toBeUndefined();
+    expect(connectedGuidance.props.accessibilityRole).toBeUndefined();
+    expect(connectedGuidance.props.focusable).toBeUndefined();
+    expect(connectedGuidance.props.tabIndex).toBeUndefined();
+    expect(connectedGuidance.props.className).not.toMatch(
+      /cursor|hover|active|focus/,
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Reset Local demo' }),
+    ).toBeNull();
+    expect(screen.queryByRole('link')).toBeNull();
+    expect(
+      screen.getByText(/fresh private or incognito browser session/),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/original records remain unchanged but are unavailable/),
+    ).toBeTruthy();
+  });
+
+  it('requires confirmation, preserves state on Cancel, and blocks duplicate reset confirmation', async () => {
+    let resolveReset: (value: boolean) => void = () => undefined;
+    const onResetLocalDemo = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveReset = resolve;
+        }),
+    );
+    render(
+      <AddMenu
+        mode="demo"
+        onCancel={jest.fn()}
+        onExtractEmail={jest.fn()}
+        onResetLocalDemo={onResetLocalDemo}
+        onSelect={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Reset Local demo' }));
+    expect(screen.getByText('Replace this Local demo?')).toBeTruthy();
+    expect(
+      screen.getByText(/completed history, metrics, pending Undo/),
+    ).toBeTruthy();
+
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Cancel Local demo reset' }),
+    );
+    expect(onResetLocalDemo).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Add a perk' })).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Reset Local demo' }));
+    const confirm = screen.getByRole('button', {
+      name: 'Confirm Local demo reset',
+    });
+    fireEvent.press(confirm);
+    fireEvent.press(confirm);
+    expect(onResetLocalDemo).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveReset(true);
+      await Promise.resolve();
+    });
   });
 });
 
@@ -89,10 +176,6 @@ describe('Milestone 03 manual-entry form', () => {
       screen.getByPlaceholderText('Review annual renewal'),
       'Keep me',
     );
-    fireEvent.changeText(
-      screen.getByPlaceholderText('YYYY-MM-DD'),
-      '2026-02-30',
-    );
     fireEvent.changeText(screen.getAllByPlaceholderText('0.00')[0], '12.345');
     fireEvent.changeText(
       screen.getByPlaceholderText('https://example.com/account'),
@@ -102,12 +185,10 @@ describe('Milestone 03 manual-entry form', () => {
 
     expect(onSave).not.toHaveBeenCalled();
     expect(screen.getByDisplayValue('Keep me')).toBeTruthy();
-    expect(screen.getByDisplayValue('2026-02-30')).toBeTruthy();
+    expect(screen.getByText('Select a date')).toBeTruthy();
     expect(screen.getByDisplayValue('12.345')).toBeTruthy();
     expect(screen.getByDisplayValue('http://example.com')).toBeTruthy();
-    expect(
-      screen.getByText('Enter a real calendar date in YYYY-MM-DD format.'),
-    ).toBeTruthy();
+    expect(screen.getByText('Enter a deadline.')).toBeTruthy();
     expect(
       screen.getByText(
         'Enter a non-negative dollar amount with no more than two decimal places.',
@@ -136,10 +217,7 @@ describe('Milestone 03 manual-entry form', () => {
       screen.getByPlaceholderText('Review annual renewal'),
       'Use travel credit',
     );
-    fireEvent.changeText(
-      screen.getByPlaceholderText('YYYY-MM-DD'),
-      '2026-07-31',
-    );
+    selectDeadline('2026-07-31');
     fireEvent.changeText(
       screen.getAllByPlaceholderText('0.00')[0],
       '$1,234.56',
@@ -169,6 +247,10 @@ describe('Milestone 03 manual-entry form', () => {
     });
     expect(screen.getByText('Saving…')).toBeTruthy();
     expect(
+      screen.getByRole('button', { name: /Deadline, required/ }).props
+        .accessibilityState,
+    ).toMatchObject({ disabled: true });
+    expect(
       screen.getByRole('button', { name: 'Cancel' }).props.accessibilityState,
     ).toMatchObject({ disabled: true });
 
@@ -193,15 +275,12 @@ describe('Milestone 03 manual-entry form', () => {
       screen.getByPlaceholderText('Review annual renewal'),
       'Keep this title',
     );
-    fireEvent.changeText(
-      screen.getByPlaceholderText('YYYY-MM-DD'),
-      '2026-08-01',
-    );
+    selectDeadline('2026-08-01');
     fireEvent.press(screen.getByRole('button', { name: 'Save task' }));
     await screen.findByText('Save task');
 
     expect(screen.getByDisplayValue('Keep this title')).toBeTruthy();
-    expect(screen.getByDisplayValue('2026-08-01')).toBeTruthy();
+    expect(screen.getByText('Aug 1, 2026')).toBeTruthy();
     expect(
       screen.getByText('We could not save this task. Try again.'),
     ).toBeTruthy();
