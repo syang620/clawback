@@ -1211,3 +1211,74 @@ work.
   are not claimed as passed.
 - Checkpoint 6C-1 is accepted under this compressed critical gate. Checkpoint
   6C-2 has not started.
+
+---
+
+## 2026-07-20 — Milestone 06 Checkpoint 6C Closure and 6D Preparation
+
+### Checkpoint 6C Decision
+
+- Checkpoint 6C-1 semantics and focus work is completed, accepted, committed,
+  and pushed at `4ad6127`.
+- Broad 6C-2 implementation is intentionally deferred for the July 21
+  submission deadline. Unperformed reduced-motion, responsive/zoom, warning,
+  and performance matrices are deferred, not passed.
+- No known submission-blocking defect remains in those deferred areas. No
+  speculative optimization, dead-code cleanup, broad responsive change, or
+  exhaustive reduced-motion work was added.
+
+### Checkpoint 6D Repository Preparation
+
+- Added a minimal Netlify contract: Expo exports the existing single-page web
+  app to `dist`, Netlify publishes that directory, and a status-200 SPA rewrite
+  serves `index.html` for direct and refreshed application routes.
+- Documented that Netlify may receive only the Supabase URL and publishable key
+  as production client build variables. All AI, service-role, JWT, database,
+  and provider configuration remains server-side.
+- Documented the exact-origin production CORS sequence, preview-origin
+  rejection, atomic Netlify rollback, clean anonymous-session judge flow, and
+  one-call hosted GPT-5.6 smoke boundary.
+- Added a synthetic, non-sensitive email fixture plus an under-three-minute
+  video run sheet and recording preflight.
+- No dependency, application code, database, Edge Function code, extraction
+  contract, or hosted secret changed during this repository-preparation step.
+
+### Pending Hosted Evidence
+
+- Stable Netlify production URL and production environment configuration.
+- Exact production origin added to the hosted Edge Function allow-list.
+- Direct and refreshed route checks, source/export/deployed secret scans, and
+  clean private-browser Connected walkthrough.
+- One hosted GPT-5.6 extraction, review, explicit Save, refresh persistence,
+  external action, completion, Activity, Undo, and console inspection.
+
+### Repository Verification
+
+- Expo dependency compatibility: passed.
+- TypeScript, lint, and formatting: passed.
+- Full Jest suite: passed, 42 suites and 280 tests.
+- Expo single-page web export: passed, 1,378 modules.
+- `git diff --check`: passed.
+- A local fallback server returned HTTP 200 for the root, Activity, Add, manual
+  Add, email Add, and representative item routes.
+- Tracked environment-path, tracked source, Git-history, and exported-bundle
+  secret scans passed. The only secret-prefix match in tracked source is the
+  intentional `sb_secret_do-not-repeat` validator fixture; it is not a usable
+  key. Client code references only the two approved public Supabase variables.
+- These deterministic commands did not invoke GPT-5.6 or a hosted extraction.
+
+### Hosted Boundary Check and Blocker
+
+- Hosted CORS still allowed exact `http://localhost:8081` preflight with HTTP
+  204 and rejected both a representative Netlify deploy-preview origin and an
+  unrelated HTTPS origin with HTTP 403 and no allow-origin response header.
+- The linked Supabase project is healthy and the expected Edge Function secret
+  names are configured. Their values were not retrieved or logged.
+- Netlify provisioning could not proceed because this environment has no
+  authenticated Netlify token, linked site, or available signed-in browser.
+  No production hostname was guessed, no allow-list secret was overwritten,
+  and no hosted GPT-5.6 quota was consumed.
+- Owner action remains required to connect the repository in Netlify, reserve
+  the stable production hostname, and set the two public Production/Build
+  variables. After that, the exact origin can be added and the one-call public
+  acceptance walkthrough can run.

@@ -225,6 +225,13 @@ CORS echoes only an exact configured origin, returns `Vary: Origin`, and never
 uses a wildcard. Native requests without an Origin still require an
 authenticated session.
 
+For the public Netlify build, the final stable HTTPS production origin is added
+as one exact entry beside the separately approved localhost development origin.
+Deploy-preview, branch-deploy, arbitrary Netlify, and unrelated origins remain
+rejected. Netlify receives no AI or server secret; it only builds the client
+with the Supabase URL and publishable key. The final production origin and one
+hosted GPT-5.6 smoke result are recorded only after deployment verification.
+
 ## 11. Rate and Cost Controls
 
 Each authenticated user may claim 20 provider invocations per UTC hour. The

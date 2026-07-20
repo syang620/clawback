@@ -110,14 +110,19 @@ A judge can understand Clawback quickly, complete the core workflow without assi
 
 ### Checkpoint 6C — Accessibility, responsive behavior, and cleanup
 
-- 6C-1: semantics and focus implementation, followed by an owner keyboard-only
-  web and iOS VoiceOver gate.
-- 6C-2: reduced motion, responsive/zoom reliability, warning cleanup, and only
-  measured performance or dead-code corrections.
+- 6C-1 semantics and focus: completed and accepted through the compressed owner
+  keyboard and VoiceOver smoke gate.
+- Broad 6C-2 implementation: intentionally deferred for the July 21 submission
+  deadline. The unperformed reduced-motion, responsive/zoom, warning, and
+  performance matrices are deferred, not passed. No known submission-blocking
+  defect remains in those areas.
 
 ### Checkpoint 6D — Deployment and final acceptance
 
-- Deferred until 6C acceptance.
+- Configure the Expo single-page export for Netlify, add the exact production
+  origin to the hosted extraction allow-list, verify direct route refreshes,
+  complete one clean private-browser hosted GPT-5.6 walkthrough, scan the
+  client export for secrets, and record judge/video instructions.
 
 ## Verification
 
@@ -149,7 +154,9 @@ Checkpoint 6A accepted on 2026-07-19 after automated verification, owner visual
 and behavioral review, and an isolated pristine Local-demo panel check.
 Checkpoint 6B status is recorded below. Checkpoint 6C-1 implementation and its
 compressed owner keyboard-only and VoiceOver acceptance are recorded below.
-Checkpoint 6C-2 and Checkpoint 6D have not started.
+Broad Checkpoint 6C-2 work was intentionally deferred under the submission-time
+decision above. Checkpoint 6D deployment preparation started on 2026-07-20;
+public deployment and hosted acceptance remain pending until recorded below.
 
 ### Files Changed
 
@@ -429,3 +436,69 @@ submission-time deferrals; deterministic coverage remains recorded above.
   cleanup justified by measured behavior.
 - No performance change is included in 6C-1; the planning baseline did not
   demonstrate a material rerender, ranking, startup, or bundle problem.
+
+### Checkpoint 6C Closure
+
+Checkpoint 6C closed on 2026-07-20. Checkpoint 6C-1 is complete and accepted.
+Broad 6C-2 changes are intentionally deferred because the submission deadline
+is July 21 at 8:00 PM ET. No speculative performance optimization, dead-code
+cleanup, broad responsive change, or exhaustive reduced-motion implementation
+was performed. The unperformed 6C-2 matrices remain documented as deferred and
+are not claimed as passed. No known submission-blocking reduced-motion,
+responsive, warning, or performance defect remains.
+
+## Checkpoint 6D Implementation Record
+
+### Status
+
+In progress. The repository-owned Netlify SPA configuration, deployment
+boundaries, judge guide, and video-preparation guide are implemented. The final
+production URL, exact hosted-origin update, public route checks, one hosted
+GPT-5.6 smoke, clean-session walkthrough, and final acceptance remain pending.
+
+### Deployment Contract
+
+- Netlify builds with `npx expo export --platform web` and publishes `dist`.
+- A non-forced `/*` status-200 rewrite serves `index.html` for application
+  routes without replacing existing static assets.
+- Netlify receives only `EXPO_PUBLIC_SUPABASE_URL` and
+  `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the Production build context.
+- OpenAI, Supabase secret/service-role, JWT, database, and provider
+  configuration remain server-side and absent from Netlify.
+- The final stable HTTPS origin will be added to the existing exact Edge
+  Function allow-list. Preview and arbitrary origins remain rejected.
+- No application architecture, database schema, extraction contract, rate
+  limit, or product workflow changed.
+
+### Repository Verification
+
+- `npx expo install --check`: passed.
+- TypeScript: passed.
+- Lint: passed.
+- Formatting: passed.
+- Full Jest: passed, 42 suites and 280 tests.
+- Expo web export: passed, 1,378 modules, output in ignored `dist/`.
+- `git diff --check`: passed.
+- Local SPA fallback returned HTTP 200 for `/`, `/activity`, `/add`,
+  `/add/manual`, `/add/email`, and a representative `/item/:id` path.
+- Tracked environment-path check passed; only `.env.example` is tracked.
+- Tracked source, Git history, and exported-bundle secret-pattern scans passed.
+  The committed `sb_secret_do-not-repeat` string remains an intentional
+  validator test fixture and is not a usable credential.
+- Client environment-name scan found only the two approved public Supabase
+  variables.
+- Normal tests and export made no hosted GPT-5.6 call.
+
+### Hosted Boundary Evidence
+
+- The linked hosted Supabase project is active and the expected Edge Function
+  configuration names are present; secret values were not read or printed.
+- The currently approved localhost origin returned preflight HTTP 204 and its
+  exact `Access-Control-Allow-Origin` value.
+- A representative Netlify deploy-preview origin and an unrelated HTTPS origin
+  each returned HTTP 403 with no allow-origin header.
+- Netlify deployment is blocked at the owner-account boundary: this workspace
+  has no Netlify authentication token, linked site ID, or available signed-in
+  browser session. No site was created and no production origin was guessed.
+- Because the final origin does not yet exist, the hosted allow-list was not
+  changed and no live GPT-5.6 submission smoke was consumed.

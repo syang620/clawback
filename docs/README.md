@@ -42,6 +42,11 @@ Records what Codex built, what the team decided, what was verified, and what rem
 
 Records the synthetic GPT-5.6 and local qwen3.5:9b evaluation method, normalized metrics, latency, repeated fixtures, and Milestone 05 conclusion.
 
+### `DEMO_GUIDE.md`
+
+Provides the clean-session judge walkthrough, synthetic email fixture, video
+run sheet, and recording preflight for the public demo.
+
 ## Milestones
 
 1. `milestones/01-foundation.md`

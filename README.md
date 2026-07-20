@@ -8,6 +8,27 @@ GPT-5.6 converts unstructured financial emails into structured tasks. Users revi
 
 This repository is being developed for OpenAI Build Week 2026.
 
+## Public Demo
+
+The final Netlify production URL will be added after deployment verification.
+For a clean judge walkthrough, open the public site in a new private or
+incognito browser window. The production build runs in Connected mode and
+creates a separate anonymous Supabase session for that browser profile.
+
+Recommended walkthrough:
+
+1. Review the seeded tasks and the Available, At Risk, and Clawed Back metrics.
+2. Add a task manually.
+3. Paste the synthetic email from `docs/DEMO_GUIDE.md`, run GPT-5.6 extraction,
+   review the candidate, and explicitly Save.
+4. Refresh to confirm persistence, open the validated external destination,
+   Complete the task, review Activity, and Undo.
+
+Clawback tracks what the user needs to do. It does not automatically cancel,
+redeem, purchase, or contact a provider. A fresh private window creates a new
+anonymous session; records from the prior session remain separate and cannot be
+recovered from the new one.
+
 ## Product Status
 
 Clawback is currently under active hackathon development.
@@ -80,6 +101,14 @@ Production hosting must rewrite route requests such as `/activity` and
 `/item/founderscard-trial`, `/add`, and `/add/manual` to `index.html`. Without
 that SPA fallback, refreshing or directly opening an application route may
 return the host's 404 response.
+
+The checked-in `netlify.toml` builds with
+`npx expo export --platform web`, publishes `dist`, and rewrites unmatched
+application routes to `index.html`. Netlify production configuration must set
+only `EXPO_PUBLIC_SUPABASE_URL` and
+`EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as client build variables. OpenAI,
+service-role, database, JWT, and other private values must never be configured
+in Netlify.
 
 ### Run on iOS Simulator
 
@@ -206,8 +235,10 @@ failure codes. See `docs/MODEL_EVALUATION.md` for Milestone 05 results.
   judge-facing, or fallback extraction.
 - Raw email and raw model output are not persisted. User review and explicit
   Save remain mandatory for every extracted candidate.
-- VoiceOver remains pending. Rate-limit UI behavior is accepted through
-  automated testing only.
+- A compressed critical VoiceOver smoke passed for Home, primary navigation,
+  one task card, Complete and Undo, required manual fields, and the deadline
+  modal. Exhaustive VoiceOver coverage remains deferred. Rate-limit UI behavior
+  is accepted through automated testing only.
 - The OpenAI project soft-budget setting remains pending and unverified;
   project budgets are alert thresholds, not a hard cap.
 - Android-specific implementation and verification have not begun.

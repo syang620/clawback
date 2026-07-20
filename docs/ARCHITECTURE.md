@@ -654,13 +654,26 @@ Where practical:
 
 ### Web
 
-Deploy the Expo web build to a judge-accessible host.
+The judge-facing web build uses Expo Router's existing single-page output and
+Netlify. `npx expo export --platform web` produces ignored output in `dist/`.
+The root `netlify.toml` publishes that directory and applies one non-forced
+`/*` rewrite to `/index.html` with status 200 so direct navigation and refresh
+work for every application route while existing static assets continue to win.
 
-Potential hosts:
+Netlify receives only the public Supabase URL and publishable key at build time.
+It hosts no server function and receives no OpenAI key, Supabase secret or
+service-role key, JWT, database password, or AI-provider configuration.
 
-- Vercel
-- Netlify
-- Expo web-compatible deployment platform
+The production HTTPS origin is added to
+`AI_EXTRACTION_ALLOWED_ORIGINS` as one exact origin. Local development may keep
+the separately approved `http://localhost:8081` origin. Wildcards, hostname
+suffix matching, Netlify deploy-preview origins, and arbitrary origins remain
+rejected. Changing only this hosted secret does not require an Edge Function
+code deployment.
+
+Netlify deploys are atomic. A web rollback republishes the previous successful
+deploy; source rollback uses a normal Git revert. Because deployment changes no
+database schema or stored record, it requires no database rollback.
 
 ### Supabase
 
