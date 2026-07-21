@@ -225,12 +225,21 @@ CORS echoes only an exact configured origin, returns `Vary: Origin`, and never
 uses a wildcard. Native requests without an Origin still require an
 authenticated session.
 
-For the public Netlify build, the final stable HTTPS production origin is added
-as one exact entry beside the separately approved localhost development origin.
-Deploy-preview, branch-deploy, arbitrary Netlify, and unrelated origins remain
-rejected. Netlify receives no AI or server secret; it only builds the client
-with the Supabase URL and publishable key. The final production origin and one
-hosted GPT-5.6 smoke result are recorded only after deployment verification.
+For the public Netlify build,
+`https://clawback-app-ai.netlify.app` is configured as one exact entry beside
+the separately approved localhost development origin. Deploy-preview,
+branch-deploy, arbitrary Netlify, and unrelated origins remain rejected.
+Netlify receives no AI or server secret; it only builds the client with the
+Supabase URL and publishable key.
+
+The final configuration check returned HTTP 204 and the exact allow-origin
+value for production and localhost, while a representative preview origin and
+an unrelated HTTPS origin returned HTTP 403 without an allow-origin header. One
+authenticated synthetic GPT-5.6 smoke through the production origin produced a
+reviewable candidate; reviewed persistence retained `source: email` and valid
+confidence, reload-equivalent access preserved the row, completion and Undo
+succeeded, and the temporary row was deleted. Raw input and provider output
+were not recorded.
 
 ## 11. Rate and Cost Controls
 

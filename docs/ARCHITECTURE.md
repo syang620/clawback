@@ -671,6 +671,10 @@ suffix matching, Netlify deploy-preview origins, and arbitrary origins remain
 rejected. Changing only this hosted secret does not require an Edge Function
 code deployment.
 
+The Milestone 06 production origin is
+`https://clawback-app-ai.netlify.app`. It is configured beside localhost as an
+exact hosted secret value, not embedded in CORS source code.
+
 Netlify deploys are atomic. A web rollback republishes the previous successful
 deploy; source rollback uses a normal Git revert. Because deployment changes no
 database schema or stored record, it requires no database rollback.

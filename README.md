@@ -10,10 +10,11 @@ This repository is being developed for OpenAI Build Week 2026.
 
 ## Public Demo
 
-The final Netlify production URL will be added after deployment verification.
-For a clean judge walkthrough, open the public site in a new private or
-incognito browser window. The production build runs in Connected mode and
-creates a separate anonymous Supabase session for that browser profile.
+The public production build is available at
+[clawback-app-ai.netlify.app](https://clawback-app-ai.netlify.app). For a clean
+judge walkthrough, open it in a new private or incognito browser window. The
+production build runs in Connected mode and creates a separate anonymous
+Supabase session for that browser profile.
 
 Recommended walkthrough:
 

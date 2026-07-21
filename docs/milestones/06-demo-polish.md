@@ -155,8 +155,9 @@ and behavioral review, and an isolated pristine Local-demo panel check.
 Checkpoint 6B status is recorded below. Checkpoint 6C-1 implementation and its
 compressed owner keyboard-only and VoiceOver acceptance are recorded below.
 Broad Checkpoint 6C-2 work was intentionally deferred under the submission-time
-decision above. Checkpoint 6D deployment preparation started on 2026-07-20;
-public deployment and hosted acceptance remain pending until recorded below.
+decision above. Checkpoint 6D and Milestone 06 were accepted on 2026-07-20 after
+the public deployment and hosted acceptance recorded below. Milestone 07 has
+not started.
 
 ### Files Changed
 
@@ -451,10 +452,11 @@ responsive, warning, or performance defect remains.
 
 ### Status
 
-In progress. The repository-owned Netlify SPA configuration, deployment
-boundaries, judge guide, and video-preparation guide are implemented. The final
-production URL, exact hosted-origin update, public route checks, one hosted
-GPT-5.6 smoke, clean-session walkthrough, and final acceptance remain pending.
+Accepted on 2026-07-20. Netlify production deployment, exact hosted-origin
+configuration, public route checks, deployed secret scans, one bounded
+authenticated GPT-5.6 persistence smoke, and the owner-observed private-browser
+workflow all passed. Checkpoint 6D and Milestone 06 are complete. Milestone 07
+has not started.
 
 ### Deployment Contract
 
@@ -465,10 +467,13 @@ GPT-5.6 smoke, clean-session walkthrough, and final acceptance remain pending.
   `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the Production build context.
 - OpenAI, Supabase secret/service-role, JWT, database, and provider
   configuration remain server-side and absent from Netlify.
-- The final stable HTTPS origin will be added to the existing exact Edge
-  Function allow-list. Preview and arbitrary origins remain rejected.
+- The final stable HTTPS origin is present in the exact Edge Function
+  allow-list. Preview and arbitrary origins remain rejected.
 - No application architecture, database schema, extraction contract, rate
   limit, or product workflow changed.
+
+Production URL:
+[https://clawback-app-ai.netlify.app](https://clawback-app-ai.netlify.app)
 
 ### Repository Verification
 
@@ -493,12 +498,40 @@ GPT-5.6 smoke, clean-session walkthrough, and final acceptance remain pending.
 
 - The linked hosted Supabase project is active and the expected Edge Function
   configuration names are present; secret values were not read or printed.
-- The currently approved localhost origin returned preflight HTTP 204 and its
-  exact `Access-Control-Allow-Origin` value.
+- The minimum configuration-only update set
+  `AI_EXTRACTION_ALLOWED_ORIGINS` to exact localhost and production origins. No
+  Edge Function code deployment was necessary.
+- Exact localhost and `https://clawback-app-ai.netlify.app` preflights returned
+  HTTP 204 and their own `Access-Control-Allow-Origin` values.
 - A representative Netlify deploy-preview origin and an unrelated HTTPS origin
   each returned HTTP 403 with no allow-origin header.
-- Netlify deployment is blocked at the owner-account boundary: this workspace
-  has no Netlify authentication token, linked site ID, or available signed-in
-  browser session. No site was created and no production origin was guessed.
-- Because the final origin does not yet exist, the hosted allow-list was not
-  changed and no live GPT-5.6 submission smoke was consumed.
+- Direct public requests returned HTTP 200 for `/`, `/activity`, `/add`,
+  `/add/manual`, `/add/email`, and a representative `/item/:id` route.
+- Deployed assets contained the expected public Supabase URL and publishable-key
+  form, and no OpenAI, service-role, secret-key, database, JWT, or AI-provider
+  credential pattern. Repeated source and local-export scans also passed.
+- One anonymous authenticated synthetic GPT-5.6 request used the production
+  Origin and returned an actionable, reviewable candidate. A reviewed Save
+  persisted `source: email` with confidence in `[0, 1]`; a restored-session
+  reload found it; completion and Undo succeeded; cleanup deleted the temporary
+  row. Exactly one hosted extraction call was made.
+- The available browser-control surface had no browser session. Rendered UI
+  interaction and browser-console inspection therefore required the owner
+  evidence recorded below.
+
+### Owner Production Acceptance
+
+- Production URL: `https://clawback-app-ai.netlify.app`.
+- Private-browser Connected initialization: passed.
+- Rendered email extraction reached editable review: passed.
+- Explicit Save required: passed.
+- Saved task persisted after refresh: passed.
+- Completion updated the app correctly: passed.
+- Undo restored the task correctly: passed.
+- Browser console: no serious application errors observed.
+- Checkpoint 6D and Milestone 06: accepted on 2026-07-20.
+- Milestone 07 was not started.
+
+### Deployment Preparation Commit
+
+- `0051391` — `chore: prepare Milestone 06 public deployment`

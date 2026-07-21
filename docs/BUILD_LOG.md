@@ -1267,18 +1267,46 @@ work.
   key. Client code references only the two approved public Supabase variables.
 - These deterministic commands did not invoke GPT-5.6 or a hosted extraction.
 
-### Hosted Boundary Check and Blocker
+### Hosted Deployment Evidence
 
-- Hosted CORS still allowed exact `http://localhost:8081` preflight with HTTP
-  204 and rejected both a representative Netlify deploy-preview origin and an
-  unrelated HTTPS origin with HTTP 403 and no allow-origin response header.
-- The linked Supabase project is healthy and the expected Edge Function secret
-  names are configured. Their values were not retrieved or logged.
-- Netlify provisioning could not proceed because this environment has no
-  authenticated Netlify token, linked site, or available signed-in browser.
-  No production hostname was guessed, no allow-list secret was overwritten,
-  and no hosted GPT-5.6 quota was consumed.
-- Owner action remains required to connect the repository in Netlify, reserve
-  the stable production hostname, and set the two public Production/Build
-  variables. After that, the exact origin can be added and the one-call public
-  acceptance walkthrough can run.
+- The owner configured the two approved public Supabase variables for Netlify
+  Production builds and redeployed
+  `https://clawback-app-ai.netlify.app`; no values were shared or recorded.
+- A configuration-only Supabase update added that exact HTTPS origin beside
+  `http://localhost:8081`. No Edge Function source or provider configuration
+  changed and no function code redeployment was required.
+- Production and localhost preflight each returned HTTP 204 and echoed only its
+  exact origin. A representative Netlify preview origin and an unrelated HTTPS
+  origin returned HTTP 403 with no allow-origin header.
+- The root, Activity, Add, manual Add, email Add, and representative item route
+  each returned HTTP 200 from the deployed Netlify site.
+- Repeated source, local export, and deployed-asset secret scans passed. The
+  deployed bundle contained the expected public Supabase configuration form and
+  no server-only variable name or forbidden credential pattern.
+- One anonymous authenticated synthetic GPT-5.6 request was sent with the exact
+  production Origin. It returned an actionable candidate. The reviewed record
+  saved with `source: email` and confidence in `[0, 1]`, survived a
+  restored-session reload, completed, restored through Undo, and was deleted in
+  cleanup. The smoke consumed exactly one hosted extraction call and retained
+  no raw email or provider response.
+- Browser automation was unavailable in this workspace. The rendered
+  private-browser review/Save interactions and browser-console inspection were
+  therefore completed by the owner and are recorded below rather than inferred
+  from the successful API-level smoke.
+
+### Owner Production Acceptance
+
+- Production URL: `https://clawback-app-ai.netlify.app`.
+- Private-browser Connected initialization: passed.
+- Rendered email extraction reached editable review: passed.
+- Explicit Save required: passed.
+- Saved task persisted after refresh: passed.
+- Completion updated the app correctly: passed.
+- Undo restored the task correctly: passed.
+- Browser console: no serious application errors observed.
+- Checkpoint 6D and Milestone 06 were accepted on 2026-07-20. Milestone 07 was
+  not started.
+
+### Deployment Preparation Commit
+
+- `0051391` — `chore: prepare Milestone 06 public deployment`

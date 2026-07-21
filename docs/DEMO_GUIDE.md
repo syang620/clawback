@@ -2,9 +2,16 @@
 
 ## Public Demo
 
-The final production URL will be recorded here after the Netlify site is
-provisioned. Open it in a fresh private or incognito browser window for a clean
-Connected session.
+Production URL:
+[https://clawback-app-ai.netlify.app](https://clawback-app-ai.netlify.app)
+
+Open it in a fresh private or incognito browser window for a clean Connected
+session.
+
+Final owner acceptance on 2026-07-20 passed private-browser Connected
+initialization, rendered extraction through editable review, mandatory explicit
+Save, persistence after refresh, completion, Undo, and browser-console review
+with no serious application errors observed.
 
 Connected records persist only for that anonymous browser session. A different
 private session receives a separate anonymous identity; the original records
